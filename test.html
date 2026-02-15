@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRITICAL SYSTEM ERROR</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background: #000;
+            color: #0f0;
+            overflow: hidden;
+            cursor: none;
+            position: relative;
+        }
+
+        .custom-cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f00;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10001;
+            box-shadow: 0 0 10px #f00;
+            animation: pulse-cursor 1s infinite;
+        }
+
+        @keyframes pulse-cursor {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.5; }
+        }
+
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 255, 0, 0.05) 0px,
+                rgba(0, 255, 0, 0.05) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 1000;
+            animation: flicker 0.15s infinite;
+        }
+
+        .glitch-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 0, 0, 0.1);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 999;
+            animation: glitchAnim 2s infinite;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.85; }
+        }
+
+        @keyframes glitchAnim {
+            0%, 90%, 100% { opacity: 0; transform: translate(0); }
+            91% { opacity: 1; transform: translate(-5px, 2px); }
+            93% { opacity: 1; transform: translate(5px, -2px); }
+            95% { opacity: 1; transform: translate(-3px, 3px); }
+            97% { opacity: 1; transform: translate(3px, -3px); }
+        }
+
+        .container {
+            padding: 0;
+            position: relative;
+            z-index: 1;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .emergency-banner {
+            background: linear-gradient(90deg, #f00, #900, #f00);
+            color: #fff;
+            text-align: center;
+            padding: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            animation: banner-flash 0.5s infinite;
+            box-shadow: 0 5px 30px rgba(255, 0, 0, 0.8);
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        @keyframes banner-flash {
+            0%, 100% { background: linear-gradient(90deg, #f00, #900, #f00); }
+            50% { background: linear-gradient(90deg, #900, #600, #900); }
+        }
+
+        .skull-warning {
+            text-align: center;
+            font-size: 120px;
+            margin: 20px 0;
+            animation: skull-shake 0.3s infinite;
+            filter: drop-shadow(0 0 20px #f00);
+        }
+
+        @keyframes skull-shake {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        .main-alert {
+            text-align: center;
+            margin: 30px;
+        }
+
+        .alert-title {
+            font-size: 48px;
+            color: #f00;
+            font-weight: bold;
+            text-shadow: 0 0 20px #f00, 0 0 40px #f00;
+            animation: text-glitch 0.3s infinite;
+            font-family: 'Orbitron', sans-serif;
+            margin-bottom: 20px;
+        }
+
+        @keyframes text-glitch {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-3px); }
+            50% { transform: translateX(3px); }
+            75% { transform: translateX(-2px); }
+        }
+
+        .alert-subtitle {
+            font-size: 28px;
+            color: #ff0;
+            margin: 15px 0;
+            animation: blink-fast 0.3s infinite;
+        }
+
+        @keyframes blink-fast {
+            0%, 50%, 100% { opacity: 1; }
+            25%, 75% { opacity: 0; }
+        }
+
+        .threat-level {
+            background: rgba(255, 0, 0, 0.2);
+            border: 3px solid #f00;
+            padding: 30px;
+            margin: 30px auto;
+            max-width: 800px;
+            box-shadow: 0 0 40px rgba(255, 0, 0, 0.6), inset 0 0 20px rgba(255, 0, 0, 0.3);
+        }
+
+        .threat-meter {
+            font-size: 64px;
+            color: #f00;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            font-family: 'Orbitron', sans-serif;
+            animation: scale-pulse 0.5s infinite;
+        }
+
+        @keyframes scale-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .terminal-window {
+            background: #000;
+            border: 3px solid #0f0;
+            margin: 20px;
+            padding: 20px;
+            height: 300px;
+            overflow-y: auto;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.5), inset 0 0 30px rgba(0, 255, 0, 0.1);
+            font-size: 13px;
+        }
+
+        .terminal-line {
+            margin: 8px 0;
+            opacity: 0;
+            animation: terminal-appear 0.3s forwards;
+        }
+
+        @keyframes terminal-appear {
+            to { opacity: 1; }
+        }
+
+        .error-line {
+            color: #f00;
+            font-weight: bold;
+            text-shadow: 0 0 5px #f00;
+        }
+
+        .warning-line {
+            color: #ff0;
+            font-weight: bold;
+        }
+
+        .success-line {
+            color: #0f0;
+        }
+
+        .critical-line {
+            color: #f0f;
+            font-weight: bold;
+            text-shadow: 0 0 10px #f0f;
+        }
+
+        .breach-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 0, 0, 0.2), rgba(139, 0, 0, 0.2));
+            border: 2px solid #f00;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(255, 0, 0, 0.8);
+        }
+
+        .stat-value {
+            font-size: 42px;
+            color: #f00;
+            font-weight: bold;
+            font-family: 'Orbitron', sans-serif;
+            text-shadow: 0 0 10px #f00;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #ff0;
+            margin-top: 10px;
+            text-transform: uppercase;
+        }
+
+        .attack-map {
+            position: relative;
+            height: 200px;
+            background: rgba(0, 20, 0, 0.5);
+            border: 2px solid #0f0;
+            margin: 20px;
+            overflow: hidden;
+        }
+
+        .attack-point {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #f00;
+            border-radius: 50%;
+            box-shadow: 0 0 20px #f00;
+            animation: attack-pulse 2s infinite;
+        }
+
+        @keyframes attack-pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(2); opacity: 0.3; }
+        }
+
+        .data-stream {
+            background: #000;
+            border: 2px solid #f00;
+            padding: 15px;
+            margin: 20px;
+            max-height: 250px;
+            overflow-y: auto;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+        }
+
+        .stream-item {
+            margin: 5px 0;
+            font-size: 11px;
+            opacity: 0;
+            animation: stream-flow 0.5s forwards;
+        }
+
+        @keyframes stream-flow {
+            from { transform: translateX(-100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .countdown-timer {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            border: 5px solid #f00;
+            padding: 50px;
+            text-align: center;
+            z-index: 100;
+            box-shadow: 0 0 100px rgba(255, 0, 0, 0.8);
+            animation: timer-shake 0.5s infinite;
+        }
+
+        @keyframes timer-shake {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+            25% { transform: translate(-50%, -50%) rotate(-1deg); }
+            50% { transform: translate(-50%, -50%) rotate(1deg); }
+            75% { transform: translate(-50%, -50%) rotate(-1deg); }
+        }
+
+        .timer-display {
+            font-size: 96px;
+            color: #f00;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            text-shadow: 0 0 30px #f00, 0 0 60px #f00;
+            margin: 20px 0;
+        }
+
+        .timer-text {
+            font-size: 24px;
+            color: #ff0;
+            margin: 10px 0;
+        }
+
+        .access-log {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            margin: 20px;
+            border-left: 5px solid #f00;
+        }
+
+        .log-entry {
+            margin: 8px 0;
+            padding: 8px;
+            background: rgba(255, 0, 0, 0.1);
+            border-left: 3px solid #f00;
+            font-size: 12px;
+        }
+
+        .webcam-warning {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 0, 0, 0.3);
+            border: 3px solid #f00;
+            padding: 20px;
+            z-index: 101;
+            animation: webcam-blink 1s infinite;
+        }
+
+        @keyframes webcam-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .webcam-icon {
+            font-size: 48px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .prank-reveal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #000, #1a1a1a);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            animation: reveal-fade 1s;
+        }
+
+        @keyframes reveal-fade {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .prank-reveal.active {
+            display: flex;
+        }
+
+        .reveal-emoji {
+            font-size: 180px;
+            animation: emoji-bounce 1s infinite;
+        }
+
+        @keyframes emoji-bounce {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-30px) rotate(-10deg); }
+            50% { transform: translateY(0) rotate(0deg); }
+            75% { transform: translateY(-15px) rotate(10deg); }
+        }
+
+        .reveal-text {
+            font-size: 72px;
+            color: #0f0;
+            text-align: center;
+            margin: 30px 0;
+            font-family: 'Orbitron', sans-serif;
+            animation: reveal-text-appear 1.5s;
+            text-shadow: 0 0 20px #0f0;
+        }
+
+        @keyframes reveal-text-appear {
+            from { 
+                transform: scale(0) rotate(-180deg);
+                opacity: 0;
+            }
+            to { 
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .reveal-message {
+            font-size: 32px;
+            color: #0f0;
+            text-align: center;
+            max-width: 700px;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.15;
+        }
+
+        .skull-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            grid-template-rows: repeat(10, 1fr);
+            opacity: 0.03;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .skull-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            animation: skull-fade 3s infinite;
+        }
+
+        @keyframes skull-fade {
+            0%, 100% { opacity: 0.1; }
+            50% { opacity: 0.3; }
+        }
+
+        .ip-tracker {
+            background: rgba(255, 0, 0, 0.15);
+            border: 2px solid #f00;
+            padding: 20px;
+            margin: 20px;
+            text-align: center;
+        }
+
+        .ip-display {
+            font-size: 36px;
+            color: #ff0;
+            font-family: 'Orbitron', sans-serif;
+            text-shadow: 0 0 15px #ff0;
+            margin: 15px 0;
+        }
+
+        .location-data {
+            font-size: 18px;
+            color: #0f0;
+            margin: 10px 0;
+        }
+
+        @keyframes critical-flash {
+            0%, 100% { background: rgba(255, 0, 0, 0.2); }
+            50% { background: rgba(255, 0, 0, 0.5); }
+        }
+    </style>
+</head>
+<body>
+    <div class="custom-cursor" id="customCursor"></div>
+    <div class="scanlines"></div>
+    <div class="glitch-overlay"></div>
+    <canvas class="matrix-bg" id="matrixCanvas"></canvas>
+    
+    <div class="skull-grid" id="skullGrid"></div>
+
+    <div class="container">
+        <div class="emergency-banner">
+            ⚠️ CRITICAL SECURITY BREACH DETECTED ⚠️ SYSTEM COMPROMISED ⚠️
+        </div>
+
+        <div class="main-alert">
+            <div class="skull-warning">☠️</div>
+            <div class="alert-title">UNAUTHORIZED ACCESS DETECTED</div>
+            <div class="alert-subtitle">⚠️ RANSOMWARE ATTACK IN PROGRESS ⚠️</div>
+        </div>
+
+        <div class="webcam-warning">
+            <div class="webcam-icon">📹</div>
+            <div style="color: #f00; font-weight: bold; text-align: center;">CAMERA</div>
+            <div style="color: #f00; font-weight: bold; text-align: center;">ACTIVE</div>
+        </div>
+
+        <div class="threat-level">
+            <div style="text-align: center; color: #ff0; font-size: 20px; margin-bottom: 15px;">
+                THREAT LEVEL
+            </div>
+            <div class="threat-meter">CRITICAL</div>
+            <div style="text-align: center; color: #f00; font-size: 18px; margin-top: 15px;">
+                🔴 MAXIMUM ALERT STATUS 🔴
+            </div>
+        </div>
+
+        <div class="countdown-timer">
+            <div style="color: #ff0; font-size: 28px; margin-bottom: 20px;">
+                ⏰ DATA ENCRYPTION IN PROGRESS
+            </div>
+            <div class="timer-display" id="mainTimer">00:00</div>
+            <div class="timer-text">UNTIL COMPLETE LOCKOUT</div>
+            <div style="color: #f00; margin-top: 20px; font-size: 16px;">
+                ALL FILES WILL BE ENCRYPTED
+            </div>
+        </div>
+
+        <div class="ip-tracker">
+            <div style="font-size: 24px; color: #ff0; margin-bottom: 15px;">
+                📍 YOUR LOCATION TRACKED
+            </div>
+            <div class="ip-display" id="ipAddress">0.0.0.0</div>
+            <div class="location-data" id="locationData">Retrieving geolocation...</div>
+            <div style="color: #f00; margin-top: 15px;">ISP: <span id="ispData">Loading...</span></div>
+        </div>
+
+        <div class="breach-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="filesStolen">0</div>
+                <div class="stat-label">FILES COMPROMISED</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="dataSize">0 GB</div>
+                <div class="stat-label">DATA EXFILTRATED</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="activeConnections">247</div>
+                <div class="stat-label">MALICIOUS CONNECTIONS</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="encryption">0%</div>
+                <div class="stat-label">ENCRYPTION PROGRESS</div>
+            </div>
+        </div>
+
+        <div class="terminal-window" id="terminal"></div>
+
+        <div class="data-stream" id="dataStream"></div>
+
+        <div class="access-log">
+            <div style="color: #f00; font-size: 20px; margin-bottom: 15px; font-weight: bold;">
+                🔓 UNAUTHORIZED ACCESS LOG
+            </div>
+            <div class="log-entry">[BREACH] Root access obtained via exploit CVE-2024-9999</div>
+            <div class="log-entry">[STEALTH] Firewall disabled - All ports exposed</div>
+            <div class="log-entry">[EXFIL] Banking credentials extracted from Chrome vault</div>
+            <div class="log-entry">[EXFIL] Social media sessions hijacked (Facebook, Instagram, Gmail)</div>
+            <div class="log-entry">[CAMERA] Webcam access granted - Recording started</div>
+            <div class="log-entry">[KEYLOG] Keystroke logger installed - Capturing all inputs</div>
+            <div class="log-entry">[CRYPTO] Scanning for cryptocurrency wallets...</div>
+            <div class="log-entry">[RANSOM] Encryption algorithm initialized: AES-256</div>
+        </div>
+
+        <div class="attack-map" id="attackMap"></div>
+    </div>
+
+    <div class="prank-reveal" id="prankReveal">
+        <div class="reveal-emoji">😂</div>
+        <div class="reveal-text">JUST KIDDING!</div>
+        <div class="reveal-message">
+            <p>😄 Relax! Your computer is totally safe!</p>
+            <p style="margin-top: 20px;">Nothing was hacked, stolen, or encrypted.</p>
+            <p style="margin-top: 20px; color: #ff0;">This was just a harmless prank! 🎭</p>
+            <p style="margin-top: 30px; font-size: 24px;">Hope we didn't scare you too much! 😅</p>
+        </div>
+    </div>
+
+    <script>
+        // Custom cursor
+        const cursor = document.getElementById('customCursor');
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX - 10 + 'px';
+            cursor.style.top = e.clientY - 10 + 'px';
+        });
+
+        // Matrix background
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+-=[]{}|;:,.<>?アイウエオカキクケコ';
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#0f0';
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 35);
+
+        // Skull grid background
+        const skullGrid = document.getElementById('skullGrid');
+        for (let i = 0; i < 100; i++) {
+            const skull = document.createElement('div');
+            skull.className = 'skull-cell';
+            skull.textContent = '☠️';
+            skull.style.animationDelay = Math.random() * 3 + 's';
+            skullGrid.appendChild(skull);
+        }
+
+        // Terminal messages
+        const terminalMessages = [
+            { text: '> INITIALIZING BREACH PROTOCOL...', delay: 0, class: 'success-line' },
+            { text: '> Scanning network vulnerabilities...', delay: 400, class: '' },
+            { text: '> [EXPLOIT FOUND] Buffer overflow in system32.dll', delay: 800, class: 'warning-line' },
+            { text: '> Injecting payload... SUCCESS', delay: 1200, class: 'success-line' },
+            { text: '> [ERROR] Antivirus detection attempted - BYPASSED', delay: 1600, class: 'error-line' },
+            { text: '> Escalating privileges to SYSTEM level...', delay: 2000, class: 'warning-line' },
+            { text: '> [ROOT ACCESS OBTAINED]', delay: 2400, class: 'critical-line' },
+            { text: '> Disabling Windows Defender... COMPLETE', delay: 2800, class: 'success-line' },
+            { text: '> Opening backdoor on port 31337...', delay: 3200, class: 'warning-line' },
+            { text: '> Connecting to C&C server: 185.220.101.32:9050', delay: 3600, class: 'success-line' },
+            { text: '> [CONNECTED] Establishing encrypted tunnel (TOR)', delay: 4000, class: 'critical-line' },
+            { text: '> Harvesting browser credentials...', delay: 4400, class: 'warning-line' },
+            { text: '> [FOUND] 47 saved passwords in Chrome', delay: 4800, class: 'error-line' },
+            { text: '> [FOUND] 23 saved passwords in Firefox', delay: 5200, class: 'error-line' },
+            { text: '> Extracting session cookies (Facebook, Gmail, Banking)...', delay: 5600, class: 'warning-line' },
+            { text: '> [EXFILTRATED] 2.4GB of sensitive data', delay: 6000, class: 'critical-line' },
+            { text: '> Activating webcam... RECORDING STARTED', delay: 6400, class: 'error-line' },
+            { text: '> Installing keylogger daemon...', delay: 6800, class: 'warning-line' },
+            { text: '> [PERSISTENCE] Registry keys modified for autostart', delay: 7200, class: 'success-line' },
+            { text: '> Scanning for cryptocurrency wallets...', delay: 7600, class: 'warning-line' },
+            { text: '> [FOUND] Bitcoin wallet with balance: $12,847.32', delay: 8000, class: 'critical-line' },
+            { text: '> Initializing ransomware encryption module...', delay: 8400, class: 'error-line' },
+            { text: '> [WARNING] File encryption will begin in 60 seconds', delay: 8800, class: 'error-line' },
+            { text: '> Targeting directories: Documents, Pictures, Desktop, Downloads', delay: 9200, class: 'warning-line' },
+            { text: '> Encryption algorithm: AES-256-CBC', delay: 9600, class: 'critical-line' },
+            { text: '> [CRITICAL] All personal files will be locked', delay: 10000, class: 'error-line' }
+        ];
+
+        const terminal = document.getElementById('terminal');
+        terminalMessages.forEach((msg, index) => {
+            setTimeout(() => {
+                const line = document.createElement('div');
+                line.className = `terminal-line ${msg.class}`;
+                line.textContent = msg.text;
+                terminal.appendChild(line);
+                terminal.scrollTop = terminal.scrollHeight;
+            }, msg.delay);
+        });
+
+        // Data stream
+        const dataStream = document.getElementById('dataStream');
+        const streamData = [
+            'C:\\Users\\Documents\\Personal_Photos.zip',
+            'C:\\Users\\Desktop\\Passwords.txt',
+            'C:\\Users\\AppData\\Chrome\\Login_Data',
+            'C:\\Users\\Documents\\Tax_Returns_2024.pdf',
+            'C:\\Users\\Pictures\\Private\\IMG_2847.jpg',
+            'C:\\Users\\Downloads\\Banking_Statement.pdf',
+            'COOKIE: facebook.com - session_id=7h4x0r3d',
+            'COOKIE: gmail.com - auth_token=c0mpr0m1s3d',
+            'PASSWORD: amazon.com - user@email.com:hunter2',
+            'PASSWORD: paypal.com - user@email.com:p@ssw0rd123',
+            'C:\\Users\\Documents\\SSN_Documents.docx',
+            'C:\\Users\\Desktop\\Credit_Card_Info.xlsx',
+            'WALLET: Bitcoin - 1A2B3C4D5E6F7G8H9I0J (Balance: $12,847)',
+            'C:\\Users\\Pictures\\Webcam\\stream_001.avi',
+            'KEYLOG: bank_login_password_entered',
+            'C:\\Users\\Documents\\Medical_Records.pdf'
+        ];
+
+        let streamIndex = 0;
+        const streamInterval = setInterval(() => {
+            if (streamIndex < streamData.length) {
+                const item = document.createElement('div');
+                item.className = 'stream-item';
+                item.style.color = streamIndex % 2 === 0 ? '#f00' : '#ff0';
+                item.textContent = `[UPLOADING] ${streamData[streamIndex]}`;
+                dataStream.appendChild(item);
+                dataStream.scrollTop = dataStream.scrollHeight;
+                streamIndex++;
+            } else {
+                streamIndex = 0;
+                dataStream.innerHTML = '';
+            }
+        }, 600);
+
+        // Attack map
+        const attackMap = document.getElementById('attackMap');
+        setInterval(() => {
+            const point = document.createElement('div');
+            point.className = 'attack-point';
+            point.style.left = Math.random() * 100 + '%';
+            point.style.top = Math.random() * 100 + '%';
+            attackMap.appendChild(point);
+            setTimeout(() => point.remove(), 2000);
+        }, 300);
+
+        // Generate fake IP
+        const fakeIP = `${Math.floor(Math.random() * 223) + 1}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
+        document.getElementById('ipAddress').textContent = fakeIP;
+
+        setTimeout(() => {
+            const cities = ['New York, USA', 'London, UK', 'Tokyo, Japan', 'Sydney, Australia', 'Berlin, Germany', 'Dubai, UAE'];
+            const city = cities[Math.floor(Math.random() * cities.length)];
+            document.getElementById('locationData').textContent = city;
+        }, 2000);
+
+        setTimeout(() => {
+            const isps = ['Comcast', 'AT&T', 'Verizon', 'BT Group', 'Deutsche Telekom', 'Orange'];
+            const isp = isps[Math.floor(Math.random() * isps.length)];
+            document.getElementById('ispData').textContent = isp;
+        }, 3000);
+
+        // Stats counters
+        let files = 0;
+        const filesInterval = setInterval(() => {
+            files += Math.floor(Math.random() * 127) + 23;
+            document.getElementById('filesStolen').textContent = files.toLocaleString();
+            
+            const gb = (files * 0.0024).toFixed(2);
+            document.getElementById('dataSize').textContent = gb + ' GB';
+        }, 150);
+
+        let encryption = 0;
+        const encryptionInterval = setInterval(() => {
+            if (encryption < 100) {
+                encryption += Math.random() * 2;
+                if (encryption > 100) encryption = 100;
+                document.getElementById('encryption').textContent = Math.floor(encryption) + '%';
+            }
+        }, 200);
+
+        // Main countdown timer
+        let seconds = 90;
+        const timerInterval = setInterval(() => {
+            seconds--;
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            document.getElementById('mainTimer').textContent = 
+                `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            
+            if (seconds <= 0) {
+                clearInterval(timerInterval);
+            }
+        }, 1000);
+
+        // Screen effects
+        setInterval(() => {
+            if (Math.random() > 0.92) {
+                document.body.style.filter = `hue-rotate(${Math.random() * 360}deg) contrast(${1 + Math.random() * 0.5})`;
+                setTimeout(() => {
+                    document.body.style.filter = 'none';
+                }, 100);
+            }
+        }, 800);
+
+        setInterval(() => {
+            if (Math.random() > 0.94) {
+                document.body.style.transform = `translate(${Math.random() * 20 - 10}px, ${Math.random() * 20 - 10}px) rotate(${Math.random() * 4 - 2}deg)`;
+                setTimeout(() => {
+                    document.body.style.transform = 'none';
+                }, 150);
+            }
+        }, 400);
+
+        // Hidden click counter for prank reveal
+        let clickCount = 0;
+        const prankReveal = document.getElementById('prankReveal');
+
+        document.body.addEventListener('click', () => {
+            clickCount++;
+            
+            if (clickCount >= 3) {
+                clearInterval(filesInterval);
+                clearInterval(encryptionInterval);
+                clearInterval(timerInterval);
+                clearInterval(streamInterval);
+                
+                prankReveal.classList.add('active');
+            }
+        });
+
+        // Random alert sounds (visual representation)
+        setInterval(() => {
+            if (Math.random() > 0.85) {
+                const banner = document.querySelector('.emergency-banner');
+                banner.style.transform = 'scale(1.02)';
+                setTimeout(() => {
+                    banner.style.transform = 'scale(1)';
+                }, 200);
+            }
+        }, 2000);
+    </script>
+</body>
+</html>
