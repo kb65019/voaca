@@ -2626,7 +2626,14 @@ onclick="showProductDetails('ساندويش كوردن بلو سوبر', 'img/IM
  <script>
 
 
-// 1. تعريف المفتاح في أعلى الكود
+
+
+
+
+
+
+
+
 const API_KEY = "AIzaSyAl9j9r1A1vpCKJXnc7oBa0_hZuuP2mQ18";
 
 async function handleEnter(event) {
@@ -2640,11 +2647,11 @@ async function handleEnter(event) {
         responseDiv.style.display = "block";
         textField.innerText = "جاري التفكير... ✨";
 
-        // تعليمات واضحة جداً للجهاز
-        const systemMsg = "أنت مساعد مطعم النقشة المركزي. ساعد الزبون في الكميات (مثلاً الـ 13 شخص يحتاجوا 3 سدور عائلية) والصحة. أجب بلهجة أردنية.";
+        // تعليمات دقيقة جداً ومبسطة (تجاوز الفلتر)
+        const systemMsg = "You are a helpful assistant for 'Naksha Al-Markazi' restaurant. Help the customer with their food questions in Jordanian Arabic dialect. If they ask about 13 people, suggest 3 large family trays.";
 
         try {
-            // استخدام نسخة مستقرة من الرابط
+            // استخدام رابط الموديل المستقر
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
             
             const response = await fetch(url, {
@@ -2652,29 +2659,43 @@ async function handleEnter(event) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     "contents": [{
-                        "parts": [{ "text": systemMsg + " سؤال الزبون: " + query }]
-                    }]
+                        "parts": [{ "text": systemMsg + " User Question: " + query }]
+                    }],
+                    // إضافة إعدادات الأمان للسماح بكل الردود المتعلقة بالأكل
+                    "safetySettings": [
+                        { "category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE" },
+                        { "category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE" },
+                        { "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE" },
+                        { "category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE" }
+                    ]
                 })
             });
 
             const data = await response.json();
 
-            // فحص دقيق للرد لضمان عدم حدوث خطأ "الضغط"
-            if (data.candidates && data.candidates.length > 0) {
+            // فحص إذا كان هناك رد فعلي من جوجل
+            if (data.candidates && data.candidates[0].content) {
                 const result = data.candidates[0].content.parts[0].text;
                 textField.innerText = result;
+            } else if (data.promptFeedback && data.promptFeedback.blockReason) {
+                // إذا تم حظر السؤال من قبل جوجل
+                textField.innerText = "اعتذر منك، جوجل حظرت السؤال. جرب تسألني: كم سدر بيكفي لـ 13 شخص؟";
             } else {
-                console.log("Response Error:", data);
-                textField.innerText = "يا هلا بك، جرب اسألني بصيغة ثانية (مثلاً: شو بيكفي 13 شخص؟)";
+                console.log("Full Error Data:", data);
+                textField.innerText = "يا هلا بك.. جرب اسألني سؤال محدد عن المنيو أو الكمية.";
             }
 
         } catch (error) {
-            console.error("Error:", error);
-            textField.innerText = "عذراً، تأكد من اتصال الإنترنت وجرب مرة ثانية.";
+            console.error("Fetch Error:", error);
+            textField.innerText = "مشكلة في الاتصال بالسيرفر، جرب مرة ثانية.";
         }
     }
 }
 
+
+
+
+         
 
 
          
