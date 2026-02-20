@@ -2627,56 +2627,50 @@ onclick="showProductDetails('ساندويش كوردن بلو سوبر', 'img/IM
 
 
 // 1. تعريف المفتاح في أعلى الكود
-const API_KEY = "AIzaSyAl9j9r1A1vpCKJXnc7oBa0_hZuuP2mQ18"; 
+const API_KEY = "AIzaSyAl9j9r1A1vpCKJXnc7oBa0_hZuuP2mQ18";
 
 async function handleEnter(event) {
-    // التأكد من أن المستخدم ضغط على Enter
     if (event.key === "Enter") {
         const query = document.getElementById('searchInput').value;
-        
-        // إذا كان السؤال قصيراً جداً لا تفعل شيئاً
-        if (query.length < 2) return;
+        if (!query || query.length < 2) return;
 
         const responseDiv = document.getElementById('aiResponse');
         const textField = document.getElementById('aiText');
 
-        // إظهار المربع وكتابة رسالة انتظار
         responseDiv.style.display = "block";
-        textField.innerText = "جاري التفكير في طلبك... ✨";
+        textField.innerText = "جاري التفكير... ✨";
 
-        // التعليمات البرمجية لعقل البوت
-        const systemInstructions = "أنت مساعد مطعم (النقشة المركزي) في الأردن. ساعد الزبائن في حساب الكميات (مثلاً: 13 شخص يحتاجون 3 سدور عائلية) والخيارات الصحية. أجب باللهجة الأردنية اللطيفة وبسرعة.";
+        // تعليمات واضحة جداً للجهاز
+        const systemMsg = "أنت مساعد مطعم النقشة المركزي. ساعد الزبون في الكميات (مثلاً الـ 13 شخص يحتاجوا 3 سدور عائلية) والصحة. أجب بلهجة أردنية.";
 
         try {
-            // رابط الاتصال بجوجل مع إضافة المفتاح الخاص بك
+            // استخدام نسخة مستقرة من الرابط
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
             
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{ 
-                        parts: [{ text: systemInstructions + " سؤال الزبون: " + query }] 
+                    "contents": [{
+                        "parts": [{ "text": systemMsg + " سؤال الزبون: " + query }]
                     }]
                 })
             });
 
-            // تحويل الرد لنص يمكن قراءته
             const data = await response.json();
 
-            if (data.candidates && data.candidates[0].content) {
+            // فحص دقيق للرد لضمان عدم حدوث خطأ "الضغط"
+            if (data.candidates && data.candidates.length > 0) {
                 const result = data.candidates[0].content.parts[0].text;
                 textField.innerText = result;
             } else {
-                // إذا كان هناك مشكلة في الرد من جوجل
-                console.error("Google Error:", data);
-                textField.innerText = "يا هلا بك، حالياً في ضغط على النظام، جرب اسألني كمان شوي.";
+                console.log("Response Error:", data);
+                textField.innerText = "يا هلا بك، جرب اسألني بصيغة ثانية (مثلاً: شو بيكفي 13 شخص؟)";
             }
 
         } catch (error) {
-            // إذا فشل الاتصال بالكامل (مثلاً لا يوجد إنترنت)
-            console.error("Connection Error:", error);
-            textField.innerText = "عذراً، في مشكلة تقنية بسيطة. تأكد من الإنترنت وجرب مرة ثانية.";
+            console.error("Error:", error);
+            textField.innerText = "عذراً، تأكد من اتصال الإنترنت وجرب مرة ثانية.";
         }
     }
 }
