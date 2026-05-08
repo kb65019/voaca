@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>نور الإسلام - مكتبة الفيديو الإسلامي</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Google Fonts: Arabic + Display font -->
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header class="site-header">
+    <div class="header-inner">
+      <!-- Logo / Site Name -->
+      <div class="logo">
+        <span class="logo-icon">☽</span>
+        <span class="logo-text">نور الإسلام</span>
+      </div>
+
+      <!-- Desktop Navigation -->
+      <nav class="main-nav" id="mainNav">
+        <a href="#" class="nav-link active">الرئيسية</a>
+        <a href="#" class="nav-link">الدروس</a>
+        <a href="#" class="nav-link">المحاضرات</a>
+        <a href="#" class="nav-link">تلاوات</a>
+        <a href="#" class="nav-link">من نحن</a>
+      </nav>
+
+      <!-- Hamburger (mobile) -->
+      <button class="hamburger" id="hamburgerBtn" aria-label="فتح القائمة">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-wrap">
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="ابحث عن محاضرات، دروس، تلاوات..." />
+        <button class="search-btn">بحث</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== MAIN LAYOUT ===== -->
+  <main class="layout">
+
+    <!-- SIDEBAR PLAYLIST -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <span class="playlist-icon">📋</span>
+        <h2>قائمة التشغيل</h2>
+      </div>
+      <!-- Playlist items are injected by JS -->
+      <ul class="playlist" id="playlist"></ul>
+    </aside>
+
+    <!-- CENTER: VIDEO PLAYER + CARDS -->
+    <section class="content-area">
+
+      <!-- VIDEO PLAYER SECTION -->
+      <div class="player-section">
+        <!-- Loading overlay shown before iframe loads -->
+        <div class="loading-overlay" id="loadingOverlay">
+          <div class="spinner"></div>
+          <p>جارٍ تحميل الفيديو...</p>
+        </div>
+
+        <!-- YouTube iframe embed -->
+        <div class="video-wrapper">
+          <iframe
+            id="videoPlayer"
+            src=""
+            title="مشغّل الفيديو"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+          ></iframe>
+        </div>
+
+        <!-- Video Info below player -->
+        <div class="video-info">
+          <h1 class="video-title" id="videoTitle">اختر فيديو للمشاهدة</h1>
+          <div class="video-meta">
+            <span class="sheikh-name" id="sheikhName">—</span>
+            <span class="separator">|</span>
+            <span class="video-duration" id="videoDuration">—</span>
+          </div>
+          <p class="video-desc" id="videoDesc">اختر فيديو من قائمة التشغيل أو من البطاقات أدناه لبدء المشاهدة.</p>
+        </div>
+      </div>
+
+      <!-- VIDEO CARDS GRID -->
+      <div class="cards-section">
+        <h2 class="section-title">
+          <span class="gold-bar"></span>
+          جميع الفيديوهات
+        </h2>
+        <!-- Cards injected by JS -->
+        <div class="cards-grid" id="cardsGrid"></div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-logo">
+        <span class="logo-icon">☽</span>
+        <span>نور الإسلام</span>
+      </div>
+      <p class="footer-tagline">﴿ وَمَن يَتَّقِ اللَّهَ يَجْعَل لَّهُ مَخْرَجًا ﴾</p>
+      <div class="footer-links">
+        <a href="#">سياسة الخصوصية</a>
+        <a href="#">تواصل معنا</a>
+        <a href="#">شروط الاستخدام</a>
+      </div>
+      <p class="copyright">© 2025 نور الإسلام — جميع الحقوق محفوظة</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
