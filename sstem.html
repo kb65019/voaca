@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة المحاسبة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { cairo: ['Cairo', 'sans-serif'] },
+                    colors: {
+                        ink: '#0f172a',
+                        ocean: '#0f3b63',
+                        mint: '#0f9f6e'
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Cairo', sans-serif; }
+        .view { display: none; }
+        .view.active { display: block; }
+        .nav-link.active { background: #e0f2fe; color: #075985; border-color: #38bdf8; }
+        input[type="number"] { appearance: textfield; }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button { appearance: none; margin: 0; }
+
+        @media print {
+            body * { visibility: hidden; }
+            #printArea, #printArea * { visibility: visible; }
+            #printArea {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                padding: 24px;
+                color: #111827;
+                background: white;
+            }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-900">
+    <div id="printArea" class="hidden"></div>
+
+    <div class="flex min-h-screen">
+        <aside id="sidebar" class="no-print fixed inset-y-0 right-0 z-40 w-72 translate-x-full border-l border-slate-200 bg-white shadow-xl transition-transform duration-200 lg:static lg:translate-x-0 lg:shadow-none">
+            <div class="flex h-20 items-center justify-between border-b border-slate-200 px-5">
+                <div>
+                    <p class="text-xs font-bold text-sky-700">نظام محاسبي</p>
+                    <h1 class="text-xl font-extrabold text-ocean">دفتر الأعمال</h1>
+                </div>
+                <button id="closeSidebar" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 lg:hidden" type="button" aria-label="إغلاق القائمة">✕</button>
+            </div>
+            <nav class="space-y-2 p-4">
+                <button class="nav-link active flex w-full items-center gap-3 rounded-xl border border-transparent px-4 py-3 text-right font-bold text-slate-600 hover:bg-slate-50" data-view="dashboard" type="button">
+                    <span>▦</span><span>لوحة التحكم</span>
+                </button>
+                <button class="nav-link flex w-full items-center gap-3 rounded-xl border border-transparent px-4 py-3 text-right font-bold text-slate-600 hover:bg-slate-50" data-view="invoices" type="button">
+                    <span>▤</span><span>المبيعات والفواتير</span>
+                </button>
+                <button class="nav-link flex w-full items-center gap-3 rounded-xl border border-transparent px-4 py-3 text-right font-bold text-slate-600 hover:bg-slate-50" data-view="expenses" type="button">
+                    <span>◫</span><span>المصاريف</span>
+                </button>
+                <button class="nav-link flex w-full items-center gap-3 rounded-xl border border-transparent px-4 py-3 text-right font-bold text-slate-600 hover:bg-slate-50" data-view="accounts" type="button">
+                    <span>▣</span><span>دليل الحسابات</span>
+                </button>
+                <button class="nav-link flex w-full items-center gap-3 rounded-xl border border-transparent px-4 py-3 text-right font-bold text-slate-600 hover:bg-slate-50" data-view="employees" type="button">
+                    <span>☷</span><span>الموظفون والرواتب</span>
+                </button>
+                <button class="nav-link flex w-full items-center gap-3 rounded-xl border border-transparent px-4 py-3 text-right font-bold text-slate-600 hover:bg-slate-50" data-view="statements" type="button">
+                    <span>▧</span><span>القوائم المالية</span>
+                </button>
+                <button class="nav-link flex w-full items-center gap-3 rounded-xl border border-transparent px-4 py-3 text-right font-bold text-slate-600 hover:bg-slate-50" data-view="reports" type="button">
+                    <span>▥</span><span>التقارير</span>
+                </button>
+                <button class="nav-link flex w-full items-center gap-3 rounded-xl border border-transparent px-4 py-3 text-right font-bold text-slate-600 hover:bg-slate-50" data-view="settings" type="button">
+                    <span>⚙</span><span>الإعدادات</span>
+                </button>
+            </nav>
+            <div class="mx-4 mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <p class="text-xs font-bold text-slate-500">الشركة الحالية</p>
+                <p id="sidebarCompany" class="mt-1 font-extrabold text-slate-800">شركة البيان</p>
+                <p id="sidebarCurrency" class="mt-1 text-sm text-slate-500">العملة: JOD</p>
+            </div>
+        </aside>
+
+        <div id="overlay" class="no-print fixed inset-0 z-30 hidden bg-slate-950/40 lg:hidden"></div>
+
+        <main class="min-w-0 flex-1">
+            <header class="no-print sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
+                <div class="flex h-20 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+                    <div class="flex items-center gap-3">
+                        <button id="openSidebar" class="rounded-lg border border-slate-200 p-2 text-slate-600 lg:hidden" type="button" aria-label="فتح القائمة">☰</button>
+                        <div>
+                            <h2 id="pageTitle" class="text-xl font-extrabold text-ink sm:text-2xl">لوحة التحكم</h2>
+                            <p id="todayLabel" class="text-sm text-slate-500"></p>
+                        </div>
+                    </div>
+                    <div class="hidden items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 sm:flex">
+                        <span class="h-2.5 w-2.5 rounded-full bg-mint"></span>
+                        <span class="text-sm font-bold text-slate-700">البيانات محفوظة محليًا</span>
+                    </div>
+                </div>
+            </header>
+
+            <section class="px-4 py-6 sm:px-6 lg:px-8">
+                <div id="dashboard" class="view active space-y-6">
+                    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                        <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                            <p class="text-sm font-bold text-slate-500">إجمالي الإيرادات</p>
+                            <p id="totalRevenue" class="mt-3 text-2xl font-extrabold text-ocean">0.00 JOD</p>
+                        </article>
+                        <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                            <p class="text-sm font-bold text-slate-500">إجمالي المصاريف</p>
+                            <p id="totalExpenses" class="mt-3 text-2xl font-extrabold text-red-600">0.00 JOD</p>
+                        </article>
+                        <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                            <p class="text-sm font-bold text-slate-500">صافي الربح</p>
+                            <p id="netProfit" class="mt-3 text-2xl font-extrabold text-mint">0.00 JOD</p>
+                        </article>
+                        <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                            <p class="text-sm font-bold text-slate-500">الذمم المدينة</p>
+                            <p id="totalDebtors" class="mt-3 text-2xl font-extrabold text-amber-600">0.00 JOD</p>
+                        </article>
+                    </div>
+
+                    <div class="grid gap-6 xl:grid-cols-3">
+                        <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm xl:col-span-2">
+                            <div class="mb-4 flex items-center justify-between gap-3">
+                                <h3 class="text-lg font-extrabold text-ink">آخر العمليات</h3>
+                                <button class="rounded-lg bg-ocean px-4 py-2 text-sm font-bold text-white hover:bg-sky-900" data-view-link="reports" type="button">عرض التقارير</button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full min-w-[720px] text-right text-sm">
+                                    <thead class="bg-slate-50 text-slate-500">
+                                        <tr>
+                                            <th class="px-4 py-3">التاريخ</th>
+                                            <th class="px-4 py-3">النوع</th>
+                                            <th class="px-4 py-3">الوصف</th>
+                                            <th class="px-4 py-3">الحالة</th>
+                                            <th class="px-4 py-3">المبلغ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentTransactions" class="divide-y divide-slate-100"></tbody>
+                                </table>
+                            </div>
+                        </section>
+
+                        <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                            <h3 class="text-lg font-extrabold text-ink">مؤشرات سريعة</h3>
+                            <div class="mt-5 space-y-4">
+                                <div>
+                                    <div class="mb-2 flex justify-between text-sm font-bold">
+                                        <span>الفواتير المدفوعة</span><span id="paidRateLabel">0%</span>
+                                    </div>
+                                    <div class="h-3 rounded-full bg-slate-100"><div id="paidRateBar" class="h-3 rounded-full bg-mint" style="width:0%"></div></div>
+                                </div>
+                                <div>
+                                    <div class="mb-2 flex justify-between text-sm font-bold">
+                                        <span>نسبة المصاريف للإيراد</span><span id="expenseRateLabel">0%</span>
+                                    </div>
+                                    <div class="h-3 rounded-full bg-slate-100"><div id="expenseRateBar" class="h-3 rounded-full bg-amber-500" style="width:0%"></div></div>
+                                </div>
+                                <div class="rounded-xl bg-slate-50 p-4">
+                                    <p class="text-sm text-slate-500">عدد الفواتير</p>
+                                    <p id="invoiceCount" class="mt-1 text-2xl font-extrabold text-ink">0</p>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+
+                <div id="invoices" class="view space-y-6">
+                    <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <div class="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                            <h3 class="text-lg font-extrabold text-ink">إنشاء فاتورة جديدة</h3>
+                            <button id="addInvoiceRow" class="rounded-lg border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-bold text-sky-800 hover:bg-sky-100" type="button">+ إضافة بند</button>
+                        </div>
+                        <form id="invoiceForm" class="space-y-5">
+                            <div class="grid gap-4 md:grid-cols-3">
+                                <label class="block">
+                                    <span class="mb-1 block text-sm font-bold text-slate-600">اسم العميل</span>
+                                    <input id="customerName" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-sky-500 focus:outline-none" type="text" required>
+                                </label>
+                                <label class="block">
+                                    <span class="mb-1 block text-sm font-bold text-slate-600">تاريخ الفاتورة</span>
+                                    <input id="invoiceDate" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-sky-500 focus:outline-none" type="date" required>
+                                </label>
+                                <label class="block">
+                                    <span class="mb-1 block text-sm font-bold text-slate-600">حالة الدفع</span>
+                                    <select id="invoiceStatus" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-sky-500 focus:outline-none">
+                                        <option value="paid">مدفوعة</option>
+                                        <option value="unpaid">غير مدفوعة</option>
+                                    </select>
+                                </label>
+                            </div>
+
+                            <div class="overflow-x-auto">
+                                <table class="w-full min-w-[900px] text-right text-sm">
+                                    <thead class="bg-slate-50 text-slate-500">
+                                        <tr>
+                                            <th class="px-3 py-3">المنتج / الخدمة</th>
+                                            <th class="px-3 py-3">السعر</th>
+                                            <th class="px-3 py-3">الكمية</th>
+                                            <th class="px-3 py-3">الضريبة %</th>
+                                            <th class="px-3 py-3">الإجمالي</th>
+                                            <th class="px-3 py-3">إجراء</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="invoiceRows" class="divide-y divide-slate-100"></tbody>
+                                </table>
+                            </div>
+
+                            <div class="flex flex-col gap-4 rounded-xl bg-slate-50 p-4 md:flex-row md:items-center md:justify-between">
+                                <div class="grid gap-2 text-sm sm:grid-cols-3">
+                                    <p>قبل الضريبة: <strong id="invoiceSubtotal">0.00 JOD</strong></p>
+                                    <p>الضريبة: <strong id="invoiceTaxTotal">0.00 JOD</strong></p>
+                                    <p>الإجمالي: <strong id="invoiceGrandTotal">0.00 JOD</strong></p>
+                                </div>
+                                <button class="rounded-lg bg-mint px-6 py-2.5 font-bold text-white hover:bg-emerald-700" type="submit">حفظ الفاتورة</button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                            <h3 class="text-lg font-extrabold text-ink">الفواتير المسجلة</h3>
+                            <input id="invoiceSearch" class="w-full rounded-lg border border-slate-300 px-3 py-2 md:w-80" type="search" placeholder="بحث باسم العميل أو رقم الفاتورة">
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full min-w-[860px] text-right text-sm">
+                                <thead class="bg-slate-50 text-slate-500">
+                                    <tr>
+                                        <th class="px-4 py-3">رقم الفاتورة</th>
+                                        <th class="px-4 py-3">العميل</th>
+                                        <th class="px-4 py-3">التاريخ</th>
+                                        <th class="px-4 py-3">الحالة</th>
+                                        <th class="px-4 py-3">الإجمالي</th>
+                                        <th class="px-4 py-3">إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="invoicesTable" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+
+                <div id="expenses" class="view space-y-6">
+                    <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <h3 class="mb-5 text-lg font-extrabold text-ink">تسجيل مصروف</h3>
+                        <form id="expenseForm" class="grid gap-4 lg:grid-cols-5">
+                            <label class="block lg:col-span-2">
+                                <span class="mb-1 block text-sm font-bold text-slate-600">الوصف</span>
+                                <input id="expenseDescription" class="w-full rounded-lg border border-slate-300 px-3 py-2" type="text" required>
+                            </label>
+                            <label class="block">
+                                <span class="mb-1 block text-sm font-bold text-slate-600">التصنيف</span>
+                                <select id="expenseCategory" class="w-full rounded-lg border border-slate-300 px-3 py-2">
+                                    <option>إيجار</option>
+                                    <option>رواتب</option>
+                                    <option>مشتريات</option>
+                                    <option>تسويق</option>
+                                    <option>خدمات</option>
+                                    <option>أخرى</option>
+                                </select>
+                            </label>
+                            <label class="block">
+                                <span class="mb-1 block text-sm font-bold text-slate-600">المبلغ</span>
+                                <input id="expenseAmount" class="w-full rounded-lg border border-slate-300 px-3 py-2" type="number" min="0.01" step="0.01" required>
+                            </label>
+                            <label class="block">
+                                <span class="mb-1 block text-sm font-bold text-slate-600">التاريخ</span>
+                                <input id="expenseDate" class="w-full rounded-lg border border-slate-300 px-3 py-2" type="date" required>
+                            </label>
+                            <div class="lg:col-span-5">
+                                <button class="rounded-lg bg-ocean px-6 py-2.5 font-bold text-white hover:bg-sky-900" type="submit">حفظ المصروف</button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                            <h3 class="text-lg font-extrabold text-ink">قائمة المصاريف</h3>
+                            <input id="expenseSearch" class="w-full rounded-lg border border-slate-300 px-3 py-2 md:w-80" type="search" placeholder="بحث بالوصف أو التصنيف">
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full min-w-[760px] text-right text-sm">
+                                <thead class="bg-slate-50 text-slate-500">
+                                    <tr>
+                                        <th class="px-4 py-3">الوصف</th>
+                                        <th class="px-4 py-3">التصنيف</th>
+                                        <th class="px-4 py-3">التاريخ</th>
+                                        <th class="px-4 py-3">المبلغ</th>
+                                        <th class="px-4 py-3">إجراء</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="expensesTable" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+
+                <div id="accounts" class="view space-y-6">
+                    <section class="grid gap-4 md:grid-cols-5">
+                        <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                            <p class="text-sm font-bold text-slate-500">الأصول</p>
+                            <p id="assetsTotal" class="mt-2 text-xl font-extrabold text-ocean">0.00 JOD</p>
+                        </article>
+                        <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                            <p class="text-sm font-bold text-slate-500">الخصوم</p>
+                            <p id="liabilitiesTotal" class="mt-2 text-xl font-extrabold text-amber-600">0.00 JOD</p>
+                        </article>
+                        <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                            <p class="text-sm font-bold text-slate-500">حقوق الملكية</p>
+                            <p id="equityTotal" class="mt-2 text-xl font-extrabold text-slate-800">0.00 JOD</p>
+                        </article>
+                        <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                            <p class="text-sm font-bold text-slate-500">الإيرادات</p>
+                            <p id="coaRevenueTotal" class="mt-2 text-xl font-extrabold text-mint">0.00 JOD</p>
+                        </article>
+                        <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                            <p class="text-sm font-bold text-slate-500">المصروفات</p>
+                            <p id="coaExpenseTotal" class="mt-2 text-xl font-extrabold text-red-600">0.00 JOD</p>
+                        </article>
+                    </section>
+
+                    <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <h3 class="mb-5 text-lg font-extrabold text-ink">إضافة حساب</h3>
+                        <form id="accountForm" class="grid gap-4 lg:grid-cols-6">
+                            <label class="block">
+                                <span class="mb-1 block text-sm font-bold text-slate-600">رقم الحساب</span>
+                                <input id="accountCode" class="w-full rounded-lg border border-slate-300 px-3 py-2" type="text" required>
+                            </label>
+                            <label class="block lg:col-span-2">
+                                <span class="mb-1 block text-sm font-bold text-slate-600">اسم الحساب</span>
+                                <input id="accountName" class="w-full rounded-lg border border-slate-300 px-3 py-2" type="text" required>
+                            </label>
+                            <label class="block">
+                                <span class="mb-1 block text-sm font-bold text-slate-600">التصنيف</span>
+                                <select id="accountType" class="w-full rounded-lg border border-slate-300 px-3 py-2">
+                                    <option value="asset">أصل</option>
+                                    <option value="liability">خصم</option>
+                                    <option value="equity">حقوق ملكية</option>
+                                    <option value="revenue">إيراد</option>
+                                    <option value="expense">مصروف</option>
+                                </select>
+                            </label>
+                            <label class="block">
+                                <span class="mb-1 block text-sm font-bold text-slate-600">الرصيد الافتتاحي</span>
+                                <input id="openingBalance" class="w-full rounded-lg border border-slate-300 px-3 py-2" type="number" step="0.01" value="0" required>
+                            </label>
+                            <div class="flex items-end">
+                                <button class="w-full rounded-lg bg-ocean px-4 py-2.5 font-bold text-white hover:bg-sky-900" type="submit">حفظ</button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                            <h3 class="text-lg font-extrabold text-ink">دليل الحسابات التفصيلي</h3>
+                            <input id="accountSearch" class="w-full rounded-lg border border-slate-300 px-3 py-2 md:w-80" type="search" placeholder="بحث برقم أو اسم الحساب">
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full min-w-[880px] text-right text-sm">
+                                <thead class="bg-slate-50 text-slate-500">
+                                    <tr>
+                                        <th class="px-4 py-3">رقم الحساب</th>
+                                        <th class="px-4 py-3">اسم الحساب</th>
+                                        <th class="px-4 py-3">التصنيف</th>
+                                        <th class="px-4 py-3">الرصيد الافتتاحي</th>
+                                        <th class="px-4 py-3">الحركة</th>
+                                        <th class="px-4 py-3">الرصيد الحالي</th>
+                                        <th class="px-4 py-3">إجراء</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="accountsTable" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+
+                <div id="employees" class="view space-y-6">
+                    <section class="grid gap-4 md:grid-cols-4">
+                        <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                            <p class="text-sm font-bold text-slate-500">عدد الموظفين</p>
+                            <p id="employeeCount" class="mt-2 text-xl font-extrabold text-ocean">0</p>
+                        </article>
+                        <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                            <p class="text-sm font-bold text-slate-500">رواتب شهرية</p>
+                            <p id="monthlyPayroll" class="mt-2 text-xl font-extrabold text-red-600">0.00 JOD</p>
+                        </article>
+                        <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                            <p class="text-sm font-bold text-slate-500">موظفون نشطون</p>
+                            <p id="activeEmployees" class="mt-2 text-xl font-extrabold text-mint">0</p>
+                        </article>
+                        <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                            <p class="text-sm font-bold text-slate-500">أقسام</p>
+                            <p id="departmentCount" class="mt-2 text-xl font-extrabold text-slate-800">0</p>
+                        </article>
+                    </section>
+
+                    <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <h3 class="mb-5 text-lg font-extrabold text-ink">ملف موظف</h3>
+                        <form id="employeeForm" class="grid gap-4 lg:grid-cols-6">
+                            <label class="block lg:col-span-2">
+                                <span class="mb-1 block text-sm font-bold text-slate-600">اسم الموظف</span>
+                                <input id="employeeName" class="w-full rounded-lg border border-slate-300 px-3 py-2" type="text" required>
+                            </label>
+                            <label class="block">
+                                <span class="mb-1 block text-sm font-bold text-slate-600">القسم</span>
+                                <input id="employeeDepartment" class="w-full rounded-lg border border-slate-300 px-3 py-2" type="text" required>
+                            </label>
+                            <label class="block">
+                                <span class="mb-1 block text-sm font-bold text-slate-600">المسمى الوظيفي</span>
+                                <input id="employeeRole" class="w-full rounded-lg border border-slate-300 px-3 py-2" type="text" required>
+                            </label>
+                            <label class="block">
+                                <span class="mb-1 block text-sm font-bold text-slate-600">الراتب الشهري</span>
+                                <input id="employeeSalary" class="w-full rounded-lg border border-slate-300 px-3 py-2" type="number" min="0.01" step="0.01" required>
+                            </label>
+                            <label class="block">
+                                <span class="mb-1 block text-sm font-bold text-slate-600">تاريخ التعيين</span>
+                                <input id="employeeHireDate" class="w-full rounded-lg border border-slate-300 px-3 py-2" type="date" required>
+                            </label>
+                            <label class="block">
+                                <span class="mb-1 block text-sm font-bold text-slate-600">الحالة</span>
+                                <select id="employeeStatus" class="w-full rounded-lg border border-slate-300 px-3 py-2">
+                                    <option value="active">نشط</option>
+                                    <option value="on_leave">إجازة</option>
+                                    <option value="inactive">غير نشط</option>
+                                </select>
+                            </label>
+                            <div class="flex items-end gap-3 lg:col-span-5">
+                                <button class="rounded-lg bg-ocean px-6 py-2.5 font-bold text-white hover:bg-sky-900" type="submit">حفظ الموظف</button>
+                                <button id="recordPayroll" class="rounded-lg border border-emerald-200 bg-emerald-50 px-6 py-2.5 font-bold text-emerald-800 hover:bg-emerald-100" type="button">ترحيل رواتب الشهر كمصروف</button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                            <h3 class="text-lg font-extrabold text-ink">سجل الموظفين</h3>
+                            <input id="employeeSearch" class="w-full rounded-lg border border-slate-300 px-3 py-2 md:w-80" type="search" placeholder="بحث باسم الموظف أو القسم">
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full min-w-[900px] text-right text-sm">
+                                <thead class="bg-slate-50 text-slate-500">
+                                    <tr>
+                                        <th class="px-4 py-3">الموظف</th>
+                                        <th class="px-4 py-3">القسم</th>
+                                        <th class="px-4 py-3">المسمى</th>
+                                        <th class="px-4 py-3">تاريخ التعيين</th>
+                                        <th class="px-4 py-3">الحالة</th>
+                                        <th class="px-4 py-3">الراتب</th>
+                                        <th class="px-4 py-3">إجراء</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="employeesTable" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+
+                <div id="statements" class="view space-y-6">
+                    <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                            <div>
+                                <h3 class="text-lg font-extrabold text-ink">القوائم المالية المتكاملة</h3>
+                                <p class="mt-1 text-sm text-slate-500">تُحتسب تلقائيًا من الفواتير، المصاريف، الرواتب، ودليل الحسابات.</p>
+                            </div>
+                            <button id="printStatements" class="rounded-lg bg-mint px-5 py-2.5 font-bold text-white" type="button">طباعة القوائم</button>
+                        </div>
+                        <div class="grid gap-6 xl:grid-cols-3">
+                            <article class="rounded-xl border border-slate-200 p-4">
+                                <h4 class="mb-4 text-base font-extrabold text-ocean">قائمة الدخل</h4>
+                                <div id="incomeStatement" class="space-y-3 text-sm"></div>
+                            </article>
+                            <article class="rounded-xl border border-slate-200 p-4">
+                                <h4 class="mb-4 text-base font-extrabold text-ocean">الميزانية العمومية</h4>
+                                <div id="balanceSheet" class="space-y-3 text-sm"></div>
+                            </article>
+                            <article class="rounded-xl border border-slate-200 p-4">
+                                <h4 class="mb-4 text-base font-extrabold text-ocean">قائمة التدفقات النقدية</h4>
+                                <div id="cashFlow" class="space-y-3 text-sm"></div>
+                            </article>
+                        </div>
+                    </section>
+                </div>
+
+                <div id="reports" class="view space-y-6">
+                    <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <div class="mb-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+                            <h3 class="text-lg font-extrabold text-ink">ملخص العمليات اليومية والشهرية</h3>
+                            <div class="grid gap-3 sm:grid-cols-3">
+                                <input id="reportSearch" class="rounded-lg border border-slate-300 px-3 py-2" type="search" placeholder="بحث في العمليات">
+                                <select id="reportPeriod" class="rounded-lg border border-slate-300 px-3 py-2">
+                                    <option value="daily">يومي</option>
+                                    <option value="monthly">شهري</option>
+                                </select>
+                                <button id="exportReport" class="rounded-lg bg-mint px-4 py-2 font-bold text-white" type="button">طباعة التقرير</button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full min-w-[840px] text-right text-sm">
+                                <thead class="bg-slate-50 text-slate-500">
+                                    <tr>
+                                        <th class="px-4 py-3">الفترة</th>
+                                        <th class="px-4 py-3">الإيرادات</th>
+                                        <th class="px-4 py-3">المصاريف</th>
+                                        <th class="px-4 py-3">صافي الربح</th>
+                                        <th class="px-4 py-3">الفواتير غير المدفوعة</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reportsTable" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+
+                <div id="settings" class="view space-y-6">
+                    <section class="max-w-3xl rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <h3 class="mb-5 text-lg font-extrabold text-ink">إعدادات الشركة</h3>
+                        <form id="settingsForm" class="space-y-4">
+                            <label class="block">
+                                <span class="mb-1 block text-sm font-bold text-slate-600">اسم الشركة</span>
+                                <input id="companyName" class="w-full rounded-lg border border-slate-300 px-3 py-2" type="text" required>
+                            </label>
+                            <label class="block">
+                                <span class="mb-1 block text-sm font-bold text-slate-600">العملة</span>
+                                <select id="currency" class="w-full rounded-lg border border-slate-300 px-3 py-2">
+                                    <option value="JOD">دينار أردني - JOD</option>
+                                    <option value="JD">JD</option>
+                                </select>
+                            </label>
+                            <label class="block">
+                                <span class="mb-1 block text-sm font-bold text-slate-600">نسبة الضريبة الافتراضية %</span>
+                                <input id="taxRate" class="w-full rounded-lg border border-slate-300 px-3 py-2" type="number" min="0" max="100" step="0.01" required>
+                            </label>
+                            <div class="flex flex-col gap-3 sm:flex-row">
+                                <button class="rounded-lg bg-ocean px-6 py-2.5 font-bold text-white hover:bg-sky-900" type="submit">حفظ الإعدادات</button>
+                                <button id="seedData" class="rounded-lg border border-slate-300 px-6 py-2.5 font-bold text-slate-700 hover:bg-slate-50" type="button">إضافة بيانات تجريبية</button>
+                                <button id="clearData" class="rounded-lg border border-red-200 px-6 py-2.5 font-bold text-red-700 hover:bg-red-50" type="button">مسح كل البيانات</button>
+                            </div>
+                        </form>
+                    </section>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'arabic_accounting_system_v1';
+        const todayIso = () => new Date().toISOString().slice(0, 10);
+        const accountTypes = {
+            asset: 'أصل',
+            liability: 'خصم',
+            equity: 'حقوق ملكية',
+            revenue: 'إيراد',
+            expense: 'مصروف'
+        };
+        const defaultAccounts = [
+            { id: 'acc-1000', code: '1000', name: 'النقدية والبنوك', type: 'asset', openingBalance: 0, system: true },
+            { id: 'acc-1100', code: '1100', name: 'الذمم المدينة', type: 'asset', openingBalance: 0, system: true },
+            { id: 'acc-2100', code: '2100', name: 'ضريبة مبيعات مستحقة', type: 'liability', openingBalance: 0, system: true },
+            { id: 'acc-3000', code: '3000', name: 'رأس المال', type: 'equity', openingBalance: 0, system: true },
+            { id: 'acc-4000', code: '4000', name: 'إيرادات المبيعات', type: 'revenue', openingBalance: 0, system: true },
+            { id: 'acc-5000', code: '5000', name: 'مصاريف تشغيلية', type: 'expense', openingBalance: 0, system: true },
+            { id: 'acc-5100', code: '5100', name: 'رواتب وأجور', type: 'expense', openingBalance: 0, system: true }
+        ];
+        const defaultState = {
+            settings: { companyName: 'شركة البيان', currency: 'JOD', taxRate: 16 },
+            invoices: [],
+            expenses: [],
+            accounts: defaultAccounts,
+            employees: []
+        };
+
+        let state = loadState();
+
+        const els = {
+            sidebar: document.getElementById('sidebar'),
+            overlay: document.getElementById('overlay'),
+            pageTitle: document.getElementById('pageTitle'),
+            todayLabel: document.getElementById('todayLabel'),
+            invoiceRows: document.getElementById('invoiceRows'),
+            invoicesTable: document.getElementById('invoicesTable'),
+            expensesTable: document.getElementById('expensesTable'),
+            accountsTable: document.getElementById('accountsTable'),
+            employeesTable: document.getElementById('employeesTable'),
+            reportsTable: document.getElementById('reportsTable'),
+            printArea: document.getElementById('printArea')
+        };
+
+        function loadState() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+                return saved ? { ...defaultState, ...saved, settings: { ...defaultState.settings, ...saved.settings } } : structuredClone(defaultState);
+            } catch {
+                return structuredClone(defaultState);
+            }
+        }
+
+        function saveState() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        }
+
+        function money(value) {
+            return `${Number(value || 0).toFixed(2)} ${state.settings.currency}`;
+        }
+
+        function cleanText(value) {
+            return String(value || '').trim();
+        }
+
+        function escapeHtml(value) {
+            const div = document.createElement('div');
+            div.textContent = String(value ?? '');
+            return div.innerHTML;
+        }
+
+        function formatDate(value) {
+            return new Intl.DateTimeFormat('ar-JO', { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(value));
+        }
+
+        function setDefaults() {
+            document.getElementById('invoiceDate').value = todayIso();
+            document.getElementById('expenseDate').value = todayIso();
+            document.getElementById('employeeHireDate').value = document.getElementById('employeeHireDate').value || todayIso();
+            document.getElementById('companyName').value = state.settings.companyName;
+            document.getElementById('currency').value = state.settings.currency;
+            document.getElementById('taxRate').value = state.settings.taxRate;
+            els.todayLabel.textContent = new Intl.DateTimeFormat('ar-JO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(new Date());
+            document.getElementById('sidebarCompany').textContent = state.settings.companyName;
+            document.getElementById('sidebarCurrency').textContent = `العملة: ${state.settings.currency}`;
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view').forEach(view => view.classList.toggle('active', view.id === viewId));
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.toggle('active', link.dataset.view === viewId));
+            const activeLink = document.querySelector(`.nav-link[data-view="${viewId}"] span:last-child`);
+            els.pageTitle.textContent = activeLink ? activeLink.textContent : 'لوحة التحكم';
+            closeMobileMenu();
+        }
+
+        function openMobileMenu() {
+            els.sidebar.classList.remove('translate-x-full');
+            els.overlay.classList.remove('hidden');
+        }
+
+        function closeMobileMenu() {
+            els.sidebar.classList.add('translate-x-full');
+            els.overlay.classList.add('hidden');
+        }
+
+        function invoiceRowTemplate(item = {}) {
+            const tr = document.createElement('tr');
+            tr.className = 'invoice-item';
+            tr.innerHTML = `
+                <td class="px-3 py-3"><input class="item-name w-full rounded-lg border border-slate-300 px-3 py-2" type="text" value="${escapeHtml(item.name || '')}" required></td>
+                <td class="px-3 py-3"><input class="item-price w-28 rounded-lg border border-slate-300 px-3 py-2" type="number" min="0.01" step="0.01" value="${item.price || ''}" required></td>
+                <td class="px-3 py-3"><input class="item-qty w-24 rounded-lg border border-slate-300 px-3 py-2" type="number" min="1" step="1" value="${item.qty || 1}" required></td>
+                <td class="px-3 py-3"><input class="item-tax w-24 rounded-lg border border-slate-300 px-3 py-2" type="number" min="0" max="100" step="0.01" value="${item.tax ?? state.settings.taxRate}" required></td>
+                <td class="item-total px-3 py-3 font-extrabold text-slate-800">0.00</td>
+                <td class="px-3 py-3"><button class="remove-row rounded-lg border border-red-200 px-3 py-2 font-bold text-red-700 hover:bg-red-50" type="button">حذف</button></td>
+            `;
+            tr.querySelectorAll('input').forEach(input => input.addEventListener('input', calculateInvoiceTotals));
+            tr.querySelector('.remove-row').addEventListener('click', () => {
+                if (els.invoiceRows.children.length > 1) tr.remove();
+                calculateInvoiceTotals();
+            });
+            els.invoiceRows.appendChild(tr);
+            calculateInvoiceTotals();
+        }
+
+        function getInvoiceItems() {
+            return Array.from(els.invoiceRows.querySelectorAll('.invoice-item')).map(row => {
+                const name = cleanText(row.querySelector('.item-name').value);
+                const price = Number(row.querySelector('.item-price').value);
+                const qty = Number(row.querySelector('.item-qty').value);
+                const tax = Number(row.querySelector('.item-tax').value);
+                const subtotal = price * qty;
+                const taxAmount = subtotal * (tax / 100);
+                return { name, price, qty, tax, subtotal, taxAmount, total: subtotal + taxAmount };
+            });
+        }
+
+        function calculateInvoiceTotals() {
+            let subtotal = 0;
+            let taxTotal = 0;
+            let grandTotal = 0;
+            Array.from(els.invoiceRows.querySelectorAll('.invoice-item')).forEach(row => {
+                const price = Number(row.querySelector('.item-price').value) || 0;
+                const qty = Number(row.querySelector('.item-qty').value) || 0;
+                const tax = Number(row.querySelector('.item-tax').value) || 0;
+                const rowSubtotal = price * qty;
+                const rowTax = rowSubtotal * (tax / 100);
+                const rowTotal = rowSubtotal + rowTax;
+                subtotal += rowSubtotal;
+                taxTotal += rowTax;
+                grandTotal += rowTotal;
+                row.querySelector('.item-total').textContent = money(rowTotal);
+            });
+            document.getElementById('invoiceSubtotal').textContent = money(subtotal);
+            document.getElementById('invoiceTaxTotal').textContent = money(taxTotal);
+            document.getElementById('invoiceGrandTotal').textContent = money(grandTotal);
+        }
+
+        function validateInvoice(items) {
+            if (!cleanText(document.getElementById('customerName').value)) return 'يرجى إدخال اسم العميل.';
+            if (!document.getElementById('invoiceDate').value) return 'يرجى اختيار تاريخ الفاتورة.';
+            if (!items.length) return 'يرجى إضافة بند واحد على الأقل.';
+            const invalid = items.some(item => !item.name || !Number.isFinite(item.price) || item.price <= 0 || !Number.isInteger(item.qty) || item.qty <= 0 || !Number.isFinite(item.tax) || item.tax < 0);
+            return invalid ? 'يرجى التأكد من أن كل البنود تحتوي على اسم وسعر وكمية وضريبة صحيحة.' : '';
+        }
+
+        function addInvoice(event) {
+            event.preventDefault();
+            const items = getInvoiceItems();
+            const error = validateInvoice(items);
+            if (error) {
+                alert(error);
+                return;
+            }
+            const invoice = {
+                id: `INV-${Date.now().toString().slice(-8)}`,
+                customer: cleanText(document.getElementById('customerName').value),
+                date: document.getElementById('invoiceDate').value,
+                status: document.getElementById('invoiceStatus').value,
+                items,
+                subtotal: items.reduce((sum, item) => sum + item.subtotal, 0),
+                taxTotal: items.reduce((sum, item) => sum + item.taxAmount, 0),
+                total: items.reduce((sum, item) => sum + item.total, 0)
+            };
+            state.invoices.unshift(invoice);
+            saveState();
+            document.getElementById('invoiceForm').reset();
+            els.invoiceRows.innerHTML = '';
+            document.getElementById('invoiceDate').value = todayIso();
+            invoiceRowTemplate();
+            renderAll();
+        }
+
+        function addExpense(event) {
+            event.preventDefault();
+            const description = cleanText(document.getElementById('expenseDescription').value);
+            const amount = Number(document.getElementById('expenseAmount').value);
+            const date = document.getElementById('expenseDate').value;
+            if (!description || !Number.isFinite(amount) || amount <= 0 || !date) {
+                alert('يرجى إدخال وصف ومبلغ وتاريخ صحيح للمصروف.');
+                return;
+            }
+            state.expenses.unshift({
+                id: `EXP-${Date.now().toString().slice(-8)}`,
+                description,
+                category: document.getElementById('expenseCategory').value,
+                amount,
+                date
+            });
+            saveState();
+            document.getElementById('expenseForm').reset();
+            document.getElementById('expenseDate').value = todayIso();
+            renderAll();
+        }
+
+        function addAccount(event) {
+            event.preventDefault();
+            const code = cleanText(document.getElementById('accountCode').value);
+            const name = cleanText(document.getElementById('accountName').value);
+            const openingBalance = Number(document.getElementById('openingBalance').value);
+            if (!code || !name || !Number.isFinite(openingBalance)) {
+                alert('يرجى إدخال رقم الحساب واسم الحساب ورصيد صحيح.');
+                return;
+            }
+            if (state.accounts.some(account => account.code === code)) {
+                alert('رقم الحساب مستخدم بالفعل.');
+                return;
+            }
+            state.accounts.push({
+                id: `ACC-${Date.now().toString().slice(-8)}`,
+                code,
+                name,
+                type: document.getElementById('accountType').value,
+                openingBalance,
+                system: false
+            });
+            saveState();
+            document.getElementById('accountForm').reset();
+            document.getElementById('openingBalance').value = 0;
+            renderAll();
+        }
+
+        function addEmployee(event) {
+            event.preventDefault();
+            const name = cleanText(document.getElementById('employeeName').value);
+            const department = cleanText(document.getElementById('employeeDepartment').value);
+            const role = cleanText(document.getElementById('employeeRole').value);
+            const salary = Number(document.getElementById('employeeSalary').value);
+            const hireDate = document.getElementById('employeeHireDate').value;
+            if (!name || !department || !role || !Number.isFinite(salary) || salary <= 0 || !hireDate) {
+                alert('يرجى إدخال بيانات الموظف والراتب بشكل صحيح.');
+                return;
+            }
+            state.employees.unshift({
+                id: `EMP-${Date.now().toString().slice(-8)}`,
+                name,
+                department,
+                role,
+                salary,
+                hireDate,
+                status: document.getElementById('employeeStatus').value
+            });
+            saveState();
+            document.getElementById('employeeForm').reset();
+            document.getElementById('employeeHireDate').value = todayIso();
+            renderAll();
+        }
+
+        function recordPayrollExpense() {
+            const activeEmployees = state.employees.filter(employee => employee.status === 'active');
+            if (!activeEmployees.length) {
+                alert('لا يوجد موظفون نشطون لترحيل الرواتب.');
+                return;
+            }
+            const monthKey = todayIso().slice(0, 7);
+            const alreadyRecorded = state.expenses.some(expense => expense.source === 'payroll' && expense.period === monthKey);
+            if (alreadyRecorded && !confirm('تم ترحيل رواتب هذا الشهر مسبقًا. هل تريد ترحيلها مرة أخرى؟')) return;
+            const totalPayroll = activeEmployees.reduce((sum, employee) => sum + employee.salary, 0);
+            state.expenses.unshift({
+                id: `EXP-${Date.now().toString().slice(-8)}`,
+                description: `رواتب شهر ${monthKey}`,
+                category: 'رواتب',
+                amount: totalPayroll,
+                date: todayIso(),
+                source: 'payroll',
+                period: monthKey
+            });
+            saveState();
+            renderAll();
+        }
+
+        function deleteInvoice(id) {
+            if (!confirm('هل تريد حذف هذه الفاتورة؟')) return;
+            state.invoices = state.invoices.filter(invoice => invoice.id !== id);
+            saveState();
+            renderAll();
+        }
+
+        function deleteExpense(id) {
+            if (!confirm('هل تريد حذف هذا المصروف؟')) return;
+            state.expenses = state.expenses.filter(expense => expense.id !== id);
+            saveState();
+            renderAll();
+        }
+
+        function deleteAccount(id) {
+            const account = state.accounts.find(item => item.id === id);
+            if (account?.system) {
+                alert('لا يمكن حذف حساب نظامي مرتبط بالتقارير.');
+                return;
+            }
+            if (!confirm('هل تريد حذف هذا الحساب؟')) return;
+            state.accounts = state.accounts.filter(item => item.id !== id);
+            saveState();
+            renderAll();
+        }
+
+        function deleteEmployee(id) {
+            if (!confirm('هل تريد حذف ملف هذا الموظف؟')) return;
+            state.employees = state.employees.filter(employee => employee.id !== id);
+            saveState();
+            renderAll();
+        }
+
+        function renderDashboard() {
+            const revenue = state.invoices.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + inv.total, 0);
+            const expenses = state.expenses.reduce((sum, exp) => sum + exp.amount, 0);
+            const debtors = state.invoices.filter(inv => inv.status === 'unpaid').reduce((sum, inv) => sum + inv.total, 0);
+            const paidCount = state.invoices.filter(inv => inv.status === 'paid').length;
+            const paidRate = state.invoices.length ? Math.round((paidCount / state.invoices.length) * 100) : 0;
+            const expenseRate = revenue ? Math.min(Math.round((expenses / revenue) * 100), 100) : 0;
+
+            document.getElementById('totalRevenue').textContent = money(revenue);
+            document.getElementById('totalExpenses').textContent = money(expenses);
+            document.getElementById('netProfit').textContent = money(revenue - expenses);
+            document.getElementById('totalDebtors').textContent = money(debtors);
+            document.getElementById('paidRateLabel').textContent = `${paidRate}%`;
+            document.getElementById('paidRateBar').style.width = `${paidRate}%`;
+            document.getElementById('expenseRateLabel').textContent = `${expenseRate}%`;
+            document.getElementById('expenseRateBar').style.width = `${expenseRate}%`;
+            document.getElementById('invoiceCount').textContent = state.invoices.length;
+
+            const transactions = getTransactions().slice(0, 7);
+            document.getElementById('recentTransactions').innerHTML = transactions.length ? transactions.map(transaction => `
+                <tr>
+                    <td class="px-4 py-3">${formatDate(transaction.date)}</td>
+                    <td class="px-4 py-3">${transaction.type}</td>
+                    <td class="px-4 py-3">${escapeHtml(transaction.description)}</td>
+                    <td class="px-4 py-3">${transaction.status}</td>
+                    <td class="px-4 py-3 font-extrabold">${money(transaction.amount)}</td>
+                </tr>
+            `).join('') : emptyRow(5, 'لا توجد عمليات بعد');
+        }
+
+        function renderInvoices() {
+            const query = cleanText(document.getElementById('invoiceSearch').value).toLowerCase();
+            const filtered = state.invoices.filter(inv => `${inv.id} ${inv.customer}`.toLowerCase().includes(query));
+            els.invoicesTable.innerHTML = filtered.length ? filtered.map(inv => `
+                <tr>
+                    <td class="px-4 py-3 font-bold">${inv.id}</td>
+                    <td class="px-4 py-3">${escapeHtml(inv.customer)}</td>
+                    <td class="px-4 py-3">${formatDate(inv.date)}</td>
+                    <td class="px-4 py-3">${statusBadge(inv.status)}</td>
+                    <td class="px-4 py-3 font-extrabold">${money(inv.total)}</td>
+                    <td class="px-4 py-3">
+                        <div class="flex flex-wrap gap-2">
+                            <button class="rounded-lg bg-ocean px-3 py-2 text-xs font-bold text-white" onclick="printInvoice('${inv.id}')" type="button">طباعة</button>
+                            <button class="rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-700" onclick="deleteInvoice('${inv.id}')" type="button">حذف</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('') : emptyRow(6, 'لا توجد فواتير مطابقة');
+        }
+
+        function renderExpenses() {
+            const query = cleanText(document.getElementById('expenseSearch').value).toLowerCase();
+            const filtered = state.expenses.filter(exp => `${exp.description} ${exp.category}`.toLowerCase().includes(query));
+            els.expensesTable.innerHTML = filtered.length ? filtered.map(exp => `
+                <tr>
+                    <td class="px-4 py-3">${escapeHtml(exp.description)}</td>
+                    <td class="px-4 py-3">${escapeHtml(exp.category)}</td>
+                    <td class="px-4 py-3">${formatDate(exp.date)}</td>
+                    <td class="px-4 py-3 font-extrabold">${money(exp.amount)}</td>
+                    <td class="px-4 py-3"><button class="rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-700" onclick="deleteExpense('${exp.id}')" type="button">حذف</button></td>
+                </tr>
+            `).join('') : emptyRow(5, 'لا توجد مصاريف مطابقة');
+        }
+
+        function getFinancialSnapshot() {
+            const paidInvoices = state.invoices.filter(inv => inv.status === 'paid');
+            const unpaidInvoices = state.invoices.filter(inv => inv.status === 'unpaid');
+            const revenue = paidInvoices.reduce((sum, inv) => sum + inv.subtotal, 0);
+            const cashCollections = paidInvoices.reduce((sum, inv) => sum + inv.total, 0);
+            const grossSales = state.invoices.reduce((sum, inv) => sum + inv.subtotal, 0);
+            const taxPayable = state.invoices.reduce((sum, inv) => sum + inv.taxTotal, 0);
+            const accountsReceivable = unpaidInvoices.reduce((sum, inv) => sum + inv.total, 0);
+            const expenses = state.expenses.reduce((sum, exp) => sum + exp.amount, 0);
+            const opening = state.accounts.reduce((totals, account) => {
+                totals[account.type] = (totals[account.type] || 0) + account.openingBalance;
+                return totals;
+            }, {});
+            const netIncome = revenue - expenses;
+            const cash = (opening.asset || 0) + cashCollections - expenses;
+            const liabilities = (opening.liability || 0) + taxPayable;
+            const equity = (opening.equity || 0) + netIncome;
+            return {
+                revenue,
+                cashCollections,
+                grossSales,
+                expenses,
+                payroll: state.expenses.filter(exp => exp.category === 'رواتب').reduce((sum, exp) => sum + exp.amount, 0),
+                accountsReceivable,
+                cash,
+                taxPayable,
+                liabilities,
+                equity,
+                assets: cash + accountsReceivable,
+                netIncome
+            };
+        }
+
+        function getAccountMovement(account, snapshot) {
+            const expenseMovement = state.expenses.reduce((sum, exp) => sum + exp.amount, 0);
+            const payrollMovement = state.expenses.filter(exp => exp.category === 'رواتب').reduce((sum, exp) => sum + exp.amount, 0);
+            const mapping = {
+                '1000': snapshot.cash - account.openingBalance,
+                '1100': snapshot.accountsReceivable,
+                '2100': snapshot.taxPayable,
+                '4000': snapshot.grossSales,
+                '5000': expenseMovement - payrollMovement,
+                '5100': payrollMovement
+            };
+            return mapping[account.code] || 0;
+        }
+
+        function renderAccounts() {
+            const snapshot = getFinancialSnapshot();
+            document.getElementById('assetsTotal').textContent = money(snapshot.assets);
+            document.getElementById('liabilitiesTotal').textContent = money(snapshot.liabilities);
+            document.getElementById('equityTotal').textContent = money(snapshot.equity);
+            document.getElementById('coaRevenueTotal').textContent = money(snapshot.grossSales);
+            document.getElementById('coaExpenseTotal').textContent = money(snapshot.expenses);
+
+            const query = cleanText(document.getElementById('accountSearch').value).toLowerCase();
+            const rows = state.accounts
+                .slice()
+                .sort((a, b) => a.code.localeCompare(b.code))
+                .filter(account => `${account.code} ${account.name} ${accountTypes[account.type]}`.toLowerCase().includes(query));
+            els.accountsTable.innerHTML = rows.length ? rows.map(account => {
+                const movement = getAccountMovement(account, snapshot);
+                const balance = account.openingBalance + movement;
+                return `
+                    <tr>
+                        <td class="px-4 py-3 font-bold">${escapeHtml(account.code)}</td>
+                        <td class="px-4 py-3">${escapeHtml(account.name)}</td>
+                        <td class="px-4 py-3">${accountTypes[account.type]}</td>
+                        <td class="px-4 py-3">${money(account.openingBalance)}</td>
+                        <td class="px-4 py-3">${money(movement)}</td>
+                        <td class="px-4 py-3 font-extrabold">${money(balance)}</td>
+                        <td class="px-4 py-3">
+                            <button class="rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-700 disabled:cursor-not-allowed disabled:opacity-40" onclick="deleteAccount('${account.id}')" ${account.system ? 'disabled' : ''} type="button">حذف</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('') : emptyRow(7, 'لا توجد حسابات مطابقة');
+        }
+
+        function renderEmployees() {
+            const query = cleanText(document.getElementById('employeeSearch').value).toLowerCase();
+            const activeEmployees = state.employees.filter(employee => employee.status === 'active');
+            const departments = new Set(state.employees.map(employee => employee.department).filter(Boolean));
+            document.getElementById('employeeCount').textContent = state.employees.length;
+            document.getElementById('activeEmployees').textContent = activeEmployees.length;
+            document.getElementById('monthlyPayroll').textContent = money(activeEmployees.reduce((sum, employee) => sum + employee.salary, 0));
+            document.getElementById('departmentCount').textContent = departments.size;
+
+            const rows = state.employees.filter(employee => `${employee.name} ${employee.department} ${employee.role}`.toLowerCase().includes(query));
+            els.employeesTable.innerHTML = rows.length ? rows.map(employee => `
+                <tr>
+                    <td class="px-4 py-3 font-bold">${escapeHtml(employee.name)}</td>
+                    <td class="px-4 py-3">${escapeHtml(employee.department)}</td>
+                    <td class="px-4 py-3">${escapeHtml(employee.role)}</td>
+                    <td class="px-4 py-3">${formatDate(employee.hireDate)}</td>
+                    <td class="px-4 py-3">${employeeStatusBadge(employee.status)}</td>
+                    <td class="px-4 py-3 font-extrabold">${money(employee.salary)}</td>
+                    <td class="px-4 py-3"><button class="rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-700" onclick="deleteEmployee('${employee.id}')" type="button">حذف</button></td>
+                </tr>
+            `).join('') : emptyRow(7, 'لا توجد ملفات موظفين مطابقة');
+        }
+
+        function renderStatements() {
+            const snapshot = getFinancialSnapshot();
+            const line = (label, value, strong = false) => `
+                <div class="flex items-center justify-between gap-4 border-b border-slate-100 pb-2 ${strong ? 'font-extrabold text-ink' : 'text-slate-700'}">
+                    <span>${label}</span><span>${money(value)}</span>
+                </div>
+            `;
+            document.getElementById('incomeStatement').innerHTML = [
+                line('إيرادات محصلة', snapshot.revenue),
+                line('إجمالي المصاريف', snapshot.expenses),
+                line('منها رواتب وأجور', snapshot.payroll),
+                line('صافي الربح', snapshot.netIncome, true)
+            ].join('');
+            document.getElementById('balanceSheet').innerHTML = [
+                line('النقدية والبنوك', snapshot.cash),
+                line('الذمم المدينة', snapshot.accountsReceivable),
+                line('إجمالي الأصول', snapshot.assets, true),
+                line('ضريبة مبيعات مستحقة', snapshot.taxPayable),
+                line('إجمالي الخصوم', snapshot.liabilities, true),
+                line('حقوق الملكية والأرباح المحتجزة', snapshot.equity, true)
+            ].join('');
+            document.getElementById('cashFlow').innerHTML = [
+                line('تحصيلات من العملاء', snapshot.cashCollections),
+                line('مدفوعات تشغيلية', -snapshot.expenses),
+                line('صافي التدفق التشغيلي', snapshot.cashCollections - snapshot.expenses, true),
+                line('رصيد نقدي تقديري', snapshot.cash, true)
+            ].join('');
+        }
+
+        function renderReports() {
+            const period = document.getElementById('reportPeriod').value;
+            const query = cleanText(document.getElementById('reportSearch').value).toLowerCase();
+            const groups = {};
+
+            state.invoices.forEach(inv => {
+                const key = period === 'monthly' ? inv.date.slice(0, 7) : inv.date;
+                groups[key] ||= { revenue: 0, expenses: 0, unpaid: 0 };
+                if (inv.status === 'paid') groups[key].revenue += inv.total;
+                if (inv.status === 'unpaid') groups[key].unpaid += inv.total;
+            });
+            state.expenses.forEach(exp => {
+                const key = period === 'monthly' ? exp.date.slice(0, 7) : exp.date;
+                groups[key] ||= { revenue: 0, expenses: 0, unpaid: 0 };
+                groups[key].expenses += exp.amount;
+            });
+
+            const rows = Object.entries(groups)
+                .sort(([a], [b]) => b.localeCompare(a))
+                .filter(([key]) => key.toLowerCase().includes(query));
+
+            els.reportsTable.innerHTML = rows.length ? rows.map(([key, row]) => `
+                <tr>
+                    <td class="px-4 py-3 font-bold">${period === 'monthly' ? key : formatDate(key)}</td>
+                    <td class="px-4 py-3 text-mint font-extrabold">${money(row.revenue)}</td>
+                    <td class="px-4 py-3 text-red-600 font-extrabold">${money(row.expenses)}</td>
+                    <td class="px-4 py-3 font-extrabold">${money(row.revenue - row.expenses)}</td>
+                    <td class="px-4 py-3 text-amber-600 font-extrabold">${money(row.unpaid)}</td>
+                </tr>
+            `).join('') : emptyRow(5, 'لا توجد بيانات للتقرير');
+        }
+
+        function getTransactions() {
+            const invoiceTransactions = state.invoices.map(inv => ({
+                date: inv.date,
+                type: 'فاتورة',
+                description: `${inv.id} - ${inv.customer}`,
+                status: inv.status === 'paid' ? 'مدفوعة' : 'غير مدفوعة',
+                amount: inv.total
+            }));
+            const expenseTransactions = state.expenses.map(exp => ({
+                date: exp.date,
+                type: 'مصروف',
+                description: exp.description,
+                status: exp.category,
+                amount: exp.amount
+            }));
+            return [...invoiceTransactions, ...expenseTransactions].sort((a, b) => b.date.localeCompare(a.date));
+        }
+
+        function statusBadge(status) {
+            const paid = status === 'paid';
+            return `<span class="rounded-full px-3 py-1 text-xs font-extrabold ${paid ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}">${paid ? 'مدفوعة' : 'غير مدفوعة'}</span>`;
+        }
+
+        function employeeStatusBadge(status) {
+            const labels = { active: 'نشط', on_leave: 'إجازة', inactive: 'غير نشط' };
+            const classes = {
+                active: 'bg-emerald-50 text-emerald-700',
+                on_leave: 'bg-amber-50 text-amber-700',
+                inactive: 'bg-slate-100 text-slate-600'
+            };
+            return `<span class="rounded-full px-3 py-1 text-xs font-extrabold ${classes[status] || classes.inactive}">${labels[status] || 'غير نشط'}</span>`;
+        }
+
+        function emptyRow(cols, message) {
+            return `<tr><td colspan="${cols}" class="px-4 py-10 text-center text-slate-500">${message}</td></tr>`;
+        }
+
+        function printInvoice(id) {
+            const invoice = state.invoices.find(inv => inv.id === id);
+            if (!invoice) return;
+            els.printArea.classList.remove('hidden');
+            els.printArea.innerHTML = `
+                <div dir="rtl" style="font-family: Cairo, Arial, sans-serif;">
+                    <div style="display:flex;justify-content:space-between;gap:24px;border-bottom:2px solid #0f3b63;padding-bottom:18px;">
+                        <div>
+                            <h1 style="margin:0;color:#0f3b63;font-size:28px;">${escapeHtml(state.settings.companyName)}</h1>
+                            <p style="margin:6px 0 0;color:#475569;">فاتورة ضريبية</p>
+                        </div>
+                        <div style="text-align:left;">
+                            <p style="margin:0;font-weight:800;">${invoice.id}</p>
+                            <p style="margin:6px 0;color:#475569;">${formatDate(invoice.date)}</p>
+                            <p style="margin:6px 0;">${invoice.status === 'paid' ? 'مدفوعة' : 'غير مدفوعة'}</p>
+                        </div>
+                    </div>
+                    <div style="margin:22px 0;">
+                        <p style="margin:0;color:#475569;">العميل</p>
+                        <h2 style="margin:6px 0 0;font-size:20px;">${escapeHtml(invoice.customer)}</h2>
+                    </div>
+                    <table style="width:100%;border-collapse:collapse;margin-top:18px;">
+                        <thead>
+                            <tr style="background:#f1f5f9;">
+                                <th style="padding:12px;border:1px solid #e2e8f0;text-align:right;">البند</th>
+                                <th style="padding:12px;border:1px solid #e2e8f0;text-align:right;">السعر</th>
+                                <th style="padding:12px;border:1px solid #e2e8f0;text-align:right;">الكمية</th>
+                                <th style="padding:12px;border:1px solid #e2e8f0;text-align:right;">الضريبة</th>
+                                <th style="padding:12px;border:1px solid #e2e8f0;text-align:right;">الإجمالي</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${invoice.items.map(item => `
+                                <tr>
+                                    <td style="padding:12px;border:1px solid #e2e8f0;">${escapeHtml(item.name)}</td>
+                                    <td style="padding:12px;border:1px solid #e2e8f0;">${money(item.price)}</td>
+                                    <td style="padding:12px;border:1px solid #e2e8f0;">${item.qty}</td>
+                                    <td style="padding:12px;border:1px solid #e2e8f0;">${item.tax}%</td>
+                                    <td style="padding:12px;border:1px solid #e2e8f0;">${money(item.total)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <div style="margin-top:22px;margin-right:auto;width:300px;">
+                        <p style="display:flex;justify-content:space-between;"><span>قبل الضريبة</span><strong>${money(invoice.subtotal)}</strong></p>
+                        <p style="display:flex;justify-content:space-between;"><span>الضريبة</span><strong>${money(invoice.taxTotal)}</strong></p>
+                        <p style="display:flex;justify-content:space-between;border-top:2px solid #0f3b63;padding-top:12px;font-size:18px;"><span>الإجمالي</span><strong>${money(invoice.total)}</strong></p>
+                    </div>
+                </div>
+            `;
+            window.print();
+            setTimeout(() => els.printArea.classList.add('hidden'), 250);
+        }
+
+        function printReport() {
+            els.printArea.classList.remove('hidden');
+            els.printArea.innerHTML = `
+                <div dir="rtl" style="font-family:Cairo,Arial,sans-serif;">
+                    <h1 style="color:#0f3b63;margin:0;">${escapeHtml(state.settings.companyName)}</h1>
+                    <h2 style="margin:8px 0 18px;">تقرير العمليات</h2>
+                    ${document.querySelector('#reports section .overflow-x-auto').innerHTML}
+                </div>
+            `;
+            window.print();
+            setTimeout(() => els.printArea.classList.add('hidden'), 250);
+        }
+
+        function printStatements() {
+            renderStatements();
+            els.printArea.classList.remove('hidden');
+            els.printArea.innerHTML = `
+                <div dir="rtl" style="font-family:Cairo,Arial,sans-serif;">
+                    <h1 style="color:#0f3b63;margin:0;">${escapeHtml(state.settings.companyName)}</h1>
+                    <h2 style="margin:8px 0 18px;">القوائم المالية</h2>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+                        <section style="border:1px solid #e2e8f0;padding:14px;"><h3>قائمة الدخل</h3>${document.getElementById('incomeStatement').innerHTML}</section>
+                        <section style="border:1px solid #e2e8f0;padding:14px;"><h3>الميزانية العمومية</h3>${document.getElementById('balanceSheet').innerHTML}</section>
+                        <section style="border:1px solid #e2e8f0;padding:14px;"><h3>التدفقات النقدية</h3>${document.getElementById('cashFlow').innerHTML}</section>
+                    </div>
+                </div>
+            `;
+            window.print();
+            setTimeout(() => els.printArea.classList.add('hidden'), 250);
+        }
+
+        function saveSettings(event) {
+            event.preventDefault();
+            const companyName = cleanText(document.getElementById('companyName').value);
+            const taxRate = Number(document.getElementById('taxRate').value);
+            if (!companyName || !Number.isFinite(taxRate) || taxRate < 0 || taxRate > 100) {
+                alert('يرجى إدخال اسم شركة ونسبة ضريبة صحيحة.');
+                return;
+            }
+            state.settings = {
+                companyName,
+                currency: document.getElementById('currency').value,
+                taxRate
+            };
+            saveState();
+            setDefaults();
+            renderAll();
+            alert('تم حفظ الإعدادات.');
+        }
+
+        function seedData() {
+            const taxRate = state.settings.taxRate;
+            const consultingSubtotal = 450;
+            const subscriptionSubtotal = 440;
+            const consultingTax = consultingSubtotal * (taxRate / 100);
+            const subscriptionTax = subscriptionSubtotal * (taxRate / 100);
+            state.invoices = [
+                {
+                    id: 'INV-24010001',
+                    customer: 'مؤسسة الندى التجارية',
+                    date: todayIso(),
+                    status: 'paid',
+                    items: [{ name: 'خدمات استشارية', price: 450, qty: 1, tax: taxRate, subtotal: consultingSubtotal, taxAmount: consultingTax, total: consultingSubtotal + consultingTax }],
+                    subtotal: consultingSubtotal,
+                    taxTotal: consultingTax,
+                    total: consultingSubtotal + consultingTax
+                },
+                {
+                    id: 'INV-24010002',
+                    customer: 'شركة الروافد',
+                    date: todayIso(),
+                    status: 'unpaid',
+                    items: [{ name: 'اشتراك شهري', price: 220, qty: 2, tax: taxRate, subtotal: subscriptionSubtotal, taxAmount: subscriptionTax, total: subscriptionSubtotal + subscriptionTax }],
+                    subtotal: subscriptionSubtotal,
+                    taxTotal: subscriptionTax,
+                    total: subscriptionSubtotal + subscriptionTax
+                }
+            ];
+            state.expenses = [
+                { id: 'EXP-24010001', description: 'إيجار المكتب', category: 'إيجار', amount: 300, date: todayIso() },
+                { id: 'EXP-24010002', description: 'حملة إعلانية', category: 'تسويق', amount: 85, date: todayIso() }
+            ];
+            state.accounts = structuredClone(defaultAccounts);
+            state.employees = [
+                { id: 'EMP-24010001', name: 'ليان الخطيب', department: 'المالية', role: 'محاسب رئيسي', salary: 950, hireDate: todayIso(), status: 'active' },
+                { id: 'EMP-24010002', name: 'أحمد الزعبي', department: 'المبيعات', role: 'مدير حسابات', salary: 780, hireDate: todayIso(), status: 'active' },
+                { id: 'EMP-24010003', name: 'سارة الحمود', department: 'العمليات', role: 'منسق عمليات', salary: 620, hireDate: todayIso(), status: 'on_leave' }
+            ];
+            saveState();
+            renderAll();
+        }
+
+        function clearData() {
+            if (!confirm('سيتم حذف كل الفواتير والمصاريف. هل أنت متأكد؟')) return;
+            state = structuredClone(defaultState);
+            saveState();
+            setDefaults();
+            renderAll();
+        }
+
+        function renderAll() {
+            setDefaults();
+            renderDashboard();
+            renderInvoices();
+            renderExpenses();
+            renderAccounts();
+            renderEmployees();
+            renderStatements();
+            renderReports();
+            calculateInvoiceTotals();
+        }
+
+        document.querySelectorAll('.nav-link').forEach(link => link.addEventListener('click', () => switchView(link.dataset.view)));
+        document.querySelectorAll('[data-view-link]').forEach(link => link.addEventListener('click', () => switchView(link.dataset.viewLink)));
+        document.getElementById('openSidebar').addEventListener('click', openMobileMenu);
+        document.getElementById('closeSidebar').addEventListener('click', closeMobileMenu);
+        document.getElementById('overlay').addEventListener('click', closeMobileMenu);
+        document.getElementById('addInvoiceRow').addEventListener('click', () => invoiceRowTemplate());
+        document.getElementById('invoiceForm').addEventListener('submit', addInvoice);
+        document.getElementById('expenseForm').addEventListener('submit', addExpense);
+        document.getElementById('accountForm').addEventListener('submit', addAccount);
+        document.getElementById('employeeForm').addEventListener('submit', addEmployee);
+        document.getElementById('recordPayroll').addEventListener('click', recordPayrollExpense);
+        document.getElementById('settingsForm').addEventListener('submit', saveSettings);
+        document.getElementById('seedData').addEventListener('click', seedData);
+        document.getElementById('clearData').addEventListener('click', clearData);
+        document.getElementById('exportReport').addEventListener('click', printReport);
+        document.getElementById('printStatements').addEventListener('click', printStatements);
+        ['invoiceSearch', 'expenseSearch', 'accountSearch', 'employeeSearch', 'reportSearch', 'reportPeriod'].forEach(id => document.getElementById(id).addEventListener('input', renderAll));
+
+        invoiceRowTemplate();
+        renderAll();
+    </script>
+</body>
+</html>
