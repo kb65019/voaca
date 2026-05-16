@@ -1,131 +1,108 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>معاينة المنتج بالواقع المعزز AR</title>
+    <title>KAFFA | Direct AR Launch</title>
     
-    <!-- استدعاء مكتبة جوجل الرسمية للـ 3D والـ AR -->
-    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        :root { --accent: #D4AF37; }
+        body { background: #000; color: white; margin: 0; overflow: hidden; font-family: sans-serif; }
+        
+        model-viewer {
+            width: 100vw;
+            height: 100vh;
+            --poster-color: transparent;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f5f7;
+        /* The "Invisible" Trigger - Full screen button to satisfy user-gesture requirements */
+        #ar-launcher {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(20px);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            color: #333;
+            transition: opacity 0.5s ease;
         }
 
-        .card {
-            background: #ffffff;
-            width: 90%;
-            max-width: 450px;
-            border-radius: 24px;
-            padding: 25px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04);
-            text-align: center;
-        }
-
-        h1 {
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: #1d1d1f;
-        }
-
-        p {
-            font-size: 14px;
-            color: #86868b;
-            margin-bottom: 20px;
-            line-height: 1.5;
-        }
-
-        /* حاوية العرض ثلاثي الأبعاد */
-        .viewer-container {
-            position: relative;
-            width: 100%;
-            height: 380px;
-            background: radial-gradient(circle, #ffffff 0%, #f2f2f2 100%);
-            border-radius: 18px;
-            overflow: hidden;
-            border: 1px solid #e5e5e7;
-        }
-
-        model-viewer {
-            width: 100%;
-            height: 100%;
-            outline: none;
-        }
-
-        /* تصميم زر تشغيل الكاميرا والواقع المعزز */
-        #ar-button {
-            background-color: #0071e3;
-            color: white;
+        .pulse-button {
+            width: 120px;
+            height: 120px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+            animation: pulse 2s infinite;
             border: none;
-            border-radius: 12px;
-            padding: 14px 28px;
-            font-size: 16px;
-            font-weight: 600;
+            color: black;
             cursor: pointer;
-            width: 100%;
-            margin-top: 20px;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
         }
 
-        #ar-button:hover {
-            background-color: #0077ed;
-            transform: translateY(-1px);
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(255, 255, 255, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
         }
 
-        #ar-button:active {
-            transform: translateY(1px);
-        }
-
-        /* إخفاء الزر تلقائياً إذا كان جهاز المستخدم لا يدعم الـ AR مطلقاً */
-        model-viewer:not([ar-status="not-presenting"]) #ar-button {
-            display: none;
-        }
+        #ar-button { display: none; } /* Hidden, we trigger it via JS */
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h1>ساعة يد ميكانيكية فاخرة</h1>
-        <p>قم بتدوير الساعة لاستكشاف التفاصيل، أو اضغط على الزر أدناه لتجربتها داخل غرفتك عبر الكاميرا.</p>
-
-        <div class="viewer-container">
-            <!-- الـ model-viewer يستدعي موديل الساعة مباشرة بدقة عالية وإضاءة محيطية متوازنة -->
-            <model-viewer 
-                src="https://modelviewer.dev/shared-assets/models/glTFSampleModels/Watch/glTF-Binary/Watch.glb" 
-                ar 
-                ar-modes="webxr scene-viewer quick-look" 
-                camera-controls 
-                interaction-prompt="auto"
-                shadow-intensity="2"
-                shadow-softness="1"
-                environment-image="neutral"
-                auto-rotate
-                auto-rotate-delay="2000">
-                
-                <!-- زر مخصص للـ AR يتم تفعيله عند الضغط -->
-                <button slot="ar-button" id="ar-button">
-                    📸 عرض مباشر في الكاميرا (AR)
-                </button>
-                
-            </model-viewer>
-        </div>
+    <!-- UI Overlay for gesture -->
+    <div id="ar-launcher">
+        <button onclick="launchAR()" class="pulse-button">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+            </svg>
+        </button>
+        <h1 class="mt-8 text-xl font-bold tracking-widest uppercase">Tap to Place in Room</h1>
+        <p class="mt-2 text-white/40 text-sm">Initializing High-Fidelity 3D Environment</p>
     </div>
 
+    <model-viewer 
+        id="viewer"
+        src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" 
+        ios-src="https://modelviewer.dev/shared-assets/models/Astronaut.usdz"
+        ar
+        ar-modes="webxr scene-viewer quick-look"
+        camera-controls
+        touch-action="pan-y"
+        shadow-intensity="1"
+        exposure="1"
+    >
+        <!-- This hidden slot is required for the AR engine -->
+        <button slot="ar-button" id="ar-button"></button>
+    </model-viewer>
+
+    <script>
+        const viewer = document.querySelector('#viewer');
+        const launcher = document.querySelector('#ar-launcher');
+
+        function launchAR() {
+            // 1. Hide the launcher UI
+            launcher.style.opacity = '0';
+            setTimeout(() => { launcher.style.display = 'none'; }, 500);
+
+            // 2. Programmatically trigger the AR session
+            // This works because it's called from a click event
+            viewer.activateAR();
+        }
+
+        // Error handling
+        viewer.addEventListener('error', (e) => {
+            console.error("AR Load Error:", e);
+            alert("This device might not support WebAR. Ensure you are using Safari (iOS) or Chrome (Android) and an HTTPS connection.");
+        });
+    </script>
 </body>
 </html>
