@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محرك البحث الذكي - دائرة قاضي القضاة</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="gov-logo">المملكة الأردنية الهاشمية</div>
+            <div class="dept-name">دائرة قاضي القضاة</div>
+            <h1>المستشار القانوني الذكي</h1>
+            <p>اسأل عن القوانين الشرعية، إجراءات المحاكم، والخدمات القضائية.</p>
+        </header>
+
+        <main>
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="ما هي شروط الحضانة؟ / كيف أسجل قضية؟ ...">
+                <button id="search-btn">بحث قانوني</button>
+            </div>
+
+            <div id="loading" class="hidden">
+                <div class="spinner"></div>
+                <span>جاري تحليل النصوص القانونية...</span>
+            </div>
+
+            <div id="response-container" class="hidden">
+                <div class="response-header">
+                    <span class="badge">إجابة رسمية</span>
+                </div>
+                <div id="ai-response" class="response-text"></div>
+                <div class="law-ref">المصدر: القوانين والأنظمة الرسمية - دائرة قاضي القضاة</div>
+            </div>
+
+            <div class="quick-links">
+                <h3>أسئلة شائعة:</h3>
+                <div class="tags">
+                    <button class="tag">ما هي سن الزواج؟</button>
+                    <button class="tag">متى تنتهي الحضانة؟</button>
+                    <button class="tag">كيف يتم الطالق؟</button>
+                    <button class="tag">إجراءات الميراث</button>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>© 2026 جميع الحقوق محفوظة - دائرة قاضي القضاة</p>
+        </footer>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

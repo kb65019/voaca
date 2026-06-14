@@ -1,0 +1,214 @@
+:root {
+    --primary-green: #1b4d3e;
+    --gold-accent: #c5a059;
+    --light-bg: #f4f7f6;
+    --white: #ffffff;
+    --text-dark: #2c3e50;
+    --text-light: #7f8c8d;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Tajawal', sans-serif;
+    background-color: var(--light-bg);
+    color: var(--text-dark);
+    line-height: 1.8;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 60px 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.gov-logo {
+    font-weight: 700;
+    color: var(--text-light);
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+}
+
+.dept-name {
+    color: var(--primary-green);
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-top: 5px;
+    border-bottom: 2px solid var(--gold-accent);
+    display: inline-block;
+    padding-bottom: 5px;
+}
+
+h1 {
+    font-size: 2.8rem;
+    margin: 20px 0 10px;
+    color: var(--primary-green);
+}
+
+header p {
+    font-size: 1.1rem;
+    color: var(--text-light);
+}
+
+.search-box {
+    display: flex;
+    background: var(--white);
+    padding: 8px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    margin-bottom: 40px;
+    border: 1px solid #ddd;
+}
+
+input[type="text"] {
+    flex: 1;
+    border: none;
+    padding: 15px 25px;
+    font-size: 1.1rem;
+    outline: none;
+    font-family: inherit;
+}
+
+button#search-btn {
+    background: var(--primary-green);
+    color: white;
+    border: none;
+    padding: 0 35px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+button#search-btn:hover {
+    background: #12362a;
+    transform: scale(1.02);
+}
+
+#response-container {
+    background: var(--white);
+    border-radius: 15px;
+    padding: 40px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+    margin-bottom: 40px;
+    border-right: 6px solid var(--gold-accent);
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.response-header {
+    margin-bottom: 20px;
+}
+
+.badge {
+    background: #e8f5e9;
+    color: var(--primary-green);
+    padding: 5px 15px;
+    border-radius: 5px;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.response-text {
+    font-size: 1.25rem;
+    color: #333;
+    white-space: pre-wrap;
+}
+
+.law-ref {
+    margin-top: 25px;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+    font-style: italic;
+}
+
+.quick-links {
+    text-align: center;
+}
+
+.quick-links h3 {
+    font-size: 1rem;
+    margin-bottom: 15px;
+    color: var(--text-light);
+}
+
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+}
+
+.tag {
+    background: #e0e0e0;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tag:hover {
+    background: var(--gold-accent);
+    color: white;
+}
+
+#loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    margin: 30px 0;
+}
+
+.spinner {
+    width: 45px;
+    height: 45px;
+    border: 4px solid #eee;
+    border-top: 4px solid var(--gold-accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.hidden {
+    display: none !important;
+}
+
+footer {
+    margin-top: auto;
+    text-align: center;
+    padding: 40px 0;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+@media (max-width: 600px) {
+    h1 { font-size: 2rem; }
+    .search-box { flex-direction: column; }
+    button#search-btn { padding: 15px; margin-top: 10px; }
+}
