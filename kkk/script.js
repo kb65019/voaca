@@ -46,55 +46,62 @@ document.addEventListener('DOMContentLoaded', () => {
         const query = searchInput.value.trim().toLowerCase();
         if (!query) return;
 
+        // Reset display
         loading.classList.remove('hidden');
         responseContainer.classList.add('hidden');
         aiResponse.innerText = '';
 
-        // محاكاة التفكير القانوني
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        try {
+            // تقليل وقت التحميل ليصبح أسرع
+            await new Promise(resolve => setTimeout(resolve, 400));
 
-        let response = "";
-        let found = false;
+            let response = "";
+            let found = false;
 
-        // منطق البحث في القوانين
-        if (query.includes("زواج") || query.includes("خاطب") || query.includes("عمر")) {
-            response += legalKnowledge.زواج.join("\n\n");
-            found = true;
-        }
-        if (query.includes("حضانة") || query.includes("حضانه") || query.includes("طفل")) {
-            response += legalKnowledge.حضانة.join("\n\n");
-            found = true;
-        }
-        if (query.includes("طلاق") || query.includes("خلع") || query.includes("شقاق")) {
-            response += legalKnowledge.طلاق.join("\n\n");
-            found = true;
-        }
-        if (query.includes("نفقة") || query.includes("نفقه") || query.includes("مصروف")) {
-            response += legalKnowledge.نفقة.join("\n\n");
-            found = true;
-        }
-        if (query.includes("ميراث") || query.includes("ورث") || query.includes("تركة")) {
-            response += legalKnowledge.ميراث.join("\n\n");
-            found = true;
-        }
-        if (query.includes("محكمة") || query.includes("قضية") || query.includes("استئناف")) {
-            response += legalKnowledge.محاكم.join("\n\n");
-            found = true;
-        }
-
-        if (!found) {
-            // محرك بحث عام داخل الكلمات الدلالية
-            const keywords = ['مطعم', 'اكل', 'شاورما'];
-            if (keywords.some(k => query.includes(keyword))) {
-                 response = "عذراً، هذا المحرك مخصص فقط لدائرة قاضي القضاة والقوانين الشرعية. يمكنك السؤال عن الزواج، الطلاق، النفقة، أو المواريث.";
-            } else {
-                 response = "أهلاً بك في دائرة قاضي القضاة. لم أجد مادة قانونية محددة لسؤالك. يرجى محاولة البحث بكلمات مثل (زواج، نفقة، حضانة، ميراث) أو التوجه لأقرب محكمة شرعية.";
+            // منطق البحث المحسن
+            if (query.includes("زواج") || query.includes("خاطب") || query.includes("عمر") || query.includes("سن")) {
+                response += legalKnowledge.زواج.join("\n\n") + "\n\n";
+                found = true;
             }
-        }
+            if (query.includes("حضانة") || query.includes("حضانه") || query.includes("طفل")) {
+                response += legalKnowledge.حضانة.join("\n\n") + "\n\n";
+                found = true;
+            }
+            if (query.includes("طلاق") || query.includes("خلع") || query.includes("شقاق")) {
+                response += legalKnowledge.طلاق.join("\n\n") + "\n\n";
+                found = true;
+            }
+            if (query.includes("نفقة") || query.includes("نفقه") || query.includes("مصروف")) {
+                response += legalKnowledge.نفقة.join("\n\n") + "\n\n";
+                found = true;
+            }
+            if (query.includes("ميراث") || query.includes("ورث") || query.includes("تركة")) {
+                response += legalKnowledge.ميراث.join("\n\n") + "\n\n";
+                found = true;
+            }
+            if (query.includes("محكمة") || query.includes("قضية") || query.includes("استئناف") || query.includes("إجراءات")) {
+                response += legalKnowledge.محاكم.join("\n\n") + "\n\n";
+                found = true;
+            }
 
-        loading.classList.add('hidden');
-        responseContainer.classList.remove('hidden');
-        aiResponse.innerText = response;
+            if (!found) {
+                const restaurantKeywords = ['مطعم', 'اكل', 'شاورما', 'بروستد', 'مندي'];
+                if (restaurantKeywords.some(k => query.includes(k))) {
+                     response = "عذراً، هذا المحرك مخصص فقط لدائرة قاضي القضاة والقوانين الشرعية. يمكنك السؤال عن الزواج، الطلاق، النفقة، أو المواريث.";
+                } else {
+                     response = "أهلاً بك في دائرة قاضي القضاة. لم أجد مادة قانونية محددة لسؤالك. يرجى محاولة البحث بكلمات مثل (زواج، نفقة، حضانة، ميراث) أو التوجه لأقرب محكمة شرعية.";
+                }
+            }
+
+            aiResponse.innerText = response.trim();
+            responseContainer.classList.remove('hidden');
+        } catch (error) {
+            console.error("Search Error:", error);
+            aiResponse.innerText = "عذراً، حدث خطأ أثناء معالجة السؤال. يرجى المحاولة مرة أخرى.";
+            responseContainer.classList.remove('hidden');
+        } finally {
+            loading.classList.add('hidden');
+        }
     };
 
     searchBtn.addEventListener('click', handleSearch);
@@ -102,9 +109,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Enter') handleSearch();
     });
 
+    // إصلاح مشكلة الأسئلة الشائعة
     tags.forEach(t => {
         t.addEventListener('click', () => {
-            searchInput.value = tag.innerText;
+            searchInput.value = t.innerText;
             handleSearch();
         });
     });
